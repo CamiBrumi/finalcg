@@ -19,11 +19,11 @@ var stack = [];
 
 var theta = 0;
 var tx = 0;
-var ty = 0;
 
 
 var xdir = {xpos:true, xneg:false};
-var ydir = {ypos:true, yneg:false};
+//var ydir = {ypos:true, yneg:false};
+var zSign = 1;
 
 function main()
 {
@@ -81,7 +81,7 @@ var id;
 function render()
 {
     var redCube = cube();
-    //var blueCube = cube();
+    var blueCube = cube();
     //var greenCube = cube();
     //var magentaCube = cube();
 
@@ -95,24 +95,28 @@ function render()
     //handling the circular movement
 
     if (xdir.xpos) {
-        if (tx > 1) {
+        if (tx >= 1) {
             xdir.xpos = false;
             xdir.xneg = true;
+            zSign = -1*zSign;
         } else {
             tx += 0.01;
+            //ty += 0.01;
         }
     } else { // xdir.xneg is true
 
-        if (tx < -1) {
+        if (tx <= -1) {
             xdir.xpos = true;
             xdir.xneg = false;
+            zSign = -1*zSign;
         } else {
             tx -= 0.01;
+            //ty -= 0.01;
         }
     }
 
     stack.push(mvMatrix);
-    mvMatrix = mult(translate(tx, 0, 0), mvMatrix);
+    mvMatrix = mult(translate(tx, 0, zSign*Math.sqrt(1-tx*tx)), mvMatrix);
     gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
     draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
     mvMatrix = stack.pop();
