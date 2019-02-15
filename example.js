@@ -85,6 +85,15 @@ function cube(color) //we define the faces here
             verts = verts.concat(quad( 12, 13, 14, 15 ));
             verts = verts.concat(quad( 13, 12, 8, 9 ));
             break;
+        case "g":
+            var inc = 16;
+            verts = verts.concat(quad( 1+inc, 0+inc, 3+inc, 2+inc ));
+            verts = verts.concat(quad( 2+inc, 3+inc, 7+inc, 6+inc ));
+            verts = verts.concat(quad( 3+inc, 0+inc, 4+inc, 7+inc ));
+            verts = verts.concat(quad( 6+inc, 5+inc, 1+inc, 2+inc ));
+            verts = verts.concat(quad( 4+inc, 5+inc, 6+inc, 7+inc ));
+            verts = verts.concat(quad( 5+inc, 4+inc, 0+inc, 1+inc ));
+            break;
     }
     /*
     verts = verts.concat(quad( 1, 0, 3, 2 ));
@@ -101,7 +110,7 @@ function render()
 {
     var redCube = cube("r");
     var blueCube = cube("b");
-    //var greenCube = cube();
+    var greenCube = cube("g");
     //var magentaCube = cube();
 
     pMatrix = perspective(fovy, aspect, .1, 10);
@@ -133,17 +142,24 @@ function render()
             //ty -= 0.01;
         }
     }
+
     stack.push(mvMatrix);
-    mvMatrix = mult(rotateZ(theta), mvMatrix); //translate(tx, 0, zSign*Math.sqrt(1-tx*tx))
+    //mvMatrix = mult(rotateY(theta), mvMatrix); //translate(tx, 0, zSign*Math.sqrt(1-tx*tx))
+    mvMatrix = mult(translate(tx, 0, zSign*Math.sqrt(1-tx*tx)), mvMatrix);
     gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
     draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
+    draw(blueCube, vec4(0.0, 0.0, 1.0, 1.0));
+    draw(greenCube, vec4(0.0, 1.0, 0.0, 1.0));
+    //mvMatrix = stack.pop();
+    //mvMatrix = stack.pop();
+    console.log(stack.length);
     //mvMatrix = stack.pop();
     //console.log(stack.length);
-    stack.push(mvMatrix);
-        mvMatrix = mult(mvMatrix, translate(tx, 0, zSign*Math.sqrt(1-tx*tx)));
+
+    /*stack.push(mvMatrix);
+        mvMatrix = mult(rotateY(theta), mvMatrix);
         gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
-        draw(blueCube, vec4(0.0, 0.0, 1.0, 1.0));
-        mvMatrix = stack.pop();
+        draw(greenCube, vec4(0.0, 1.0, 0.0, 1.0));
         mvMatrix = stack.pop();
     /*
     stack.push(mvMatrix);
@@ -205,23 +221,32 @@ function quad(a, b, c, d)
     var verts = [];
 
     var vertices = [
-        vec4( -1.0, -1.0, 0.5, 1.0 ),
-        vec4( -1.0, 0.0, 0.5, 1.0 ),
-        vec4(  0.0,  0.0,  0.5, 1.0 ),
-        vec4( 0.0, -1.0, 0.5, 1.0 ),
-        vec4( -1.0, -1.0, -0.5, 1.0 ),
-        vec4( -1.0, 0.0, -0.5, 1.0 ),
-        vec4(  0.0,  0.0,  -0.5, 1.0 ),
-        vec4( 0.0, -1.0, -0.5, 1.0 ),//
+        vec4( -1.5, -1.0, 0.5, 1.0 ),
+        vec4( -1.5, 0.0, 0.5, 1.0 ),
+        vec4(  -0.5,  0.0,  0.5, 1.0 ),
+        vec4( -0.5, -1.0, 0.5, 1.0 ),
+        vec4( -1.5, -1.0, -0.5, 1.0 ),
+        vec4( -1.5, 0.0, -0.5, 1.0 ),
+        vec4(  -0.5,  0.0,  -0.5, 1.0 ),
+        vec4( -0.5, -1.0, -0.5, 1.0 ),//red
 
-        vec4( 0.0, 0.0,  0.5, 1.0 ),
-        vec4( 0.0,  1.0,  0.5, 1.0 ),
-        vec4(  1.0,  1.0,  0.5, 1.0 ),
-        vec4(  1.0, 0.0,  0.5, 1.0 ),
-        vec4( 0.0, 0.0, -0.5, 1.0 ),
-        vec4( 0.0,  1.0, -0.5, 1.0 ),
-        vec4(  1.0,  1.0, -0.5, 1.0 ),
-        vec4(  1.0, 0.0, -0.5, 1.0 ),//
+        vec4( 0.5, -1.0,  0.5, 1.0 ),
+        vec4( 0.5,  0.0,  0.5, 1.0 ),
+        vec4(  1.5,  0.0,  0.5, 1.0 ),
+        vec4(  1.5, -1.0,  0.5, 1.0 ),
+        vec4( 0.5, -1.0, -0.5, 1.0 ),
+        vec4( 0.5,  0.0, -0.5, 1.0 ),
+        vec4(  1.5,  0.0, -0.5, 1.0 ),
+        vec4(  1.5, -1.0, -0.5, 1.0 ),//blue
+
+        vec4( -0.5, 1.0,  0.5, 1.0 ),
+        vec4( -0.5,  2.0,  0.5, 1.0 ),
+        vec4(  0.5,  2.0,  0.5, 1.0 ),
+        vec4(  0.5, 1.0,  0.5, 1.0 ),
+        vec4( -0.5, 1.0, -0.5, 1.0 ),
+        vec4( -0.5,  2.0, -0.5, 1.0 ),
+        vec4(  0.5,  2.0, -0.5, 1.0 ),
+        vec4(  0.5, 1.0, -0.5, 1.0 ) //green
 
     ];
 
