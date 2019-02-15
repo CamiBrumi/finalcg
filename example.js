@@ -5,7 +5,7 @@ var NumVertices  = 36;
 
 var gl;
 
-var fovy = 45.0;  // Field-of-view in Y direction angle (in degrees)
+var fovy = 60.0;  // Field-of-view in Y direction angle (in degrees)
 var aspect;       // Viewport aspect ratio
 var program;
 
@@ -16,6 +16,14 @@ const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
 
 var stack = [];
+
+var theta = 0;
+var tx = 0;
+var ty = 0;
+
+
+var xdir = {xpos:true, xneg:false};
+var ydir = {ypos:true, yneg:false};
 
 function main()
 {
@@ -69,19 +77,47 @@ function cube()
     return verts;
 }
 
+var id;
 function render()
 {
     var redCube = cube();
-    var blueCube = cube();
-    var greenCube = cube();
-    var magentaCube = cube();
+    //var blueCube = cube();
+    //var greenCube = cube();
+    //var magentaCube = cube();
 
     pMatrix = perspective(fovy, aspect, .1, 10);
     gl.uniformMatrix4fv( projection, false, flatten(pMatrix) );
 
+    theta += 0.1;
     eye = vec3(0, 0, 4);
     mvMatrix = lookAt(eye, at , up);
 
+    //handling the circular movement
+
+    if (xdir.xpos) {
+        if (tx > 1) {
+            xdir.xpos = false;
+            xdir.xneg = true;
+        } else {
+            tx += 0.01;
+        }
+    } else { // xdir.xneg is true
+
+        if (tx < -1) {
+            xdir.xpos = true;
+            xdir.xneg = false;
+        } else {
+            tx -= 0.01;
+        }
+    }
+
+    stack.push(mvMatrix);
+    mvMatrix = mult(translate(tx, 0, 0), mvMatrix);
+    gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
+    draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
+    mvMatrix = stack.pop();
+    //console.log(stack.length);
+    /*
     stack.push(mvMatrix);
         mvMatrix = mult(rotateZ(45), mvMatrix);
         gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
@@ -89,7 +125,7 @@ function render()
         //mvMatrix = stack.pop();
 
         stack.push(mvMatrix);
-            mvMatrix = mult(mvMatrix, translate(1, 1, 1));
+            mvMatrix = mult(mvMatrix, translate(1, 1, 0));
             gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
             draw(magentaCube, vec4(1.0, 0.0, 1.0, 1.0));
         mvMatrix = stack.pop();
@@ -102,8 +138,8 @@ function render()
     mvMatrix = stack.pop();
 
     gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
-    draw(greenCube, vec4(0.0, 1.0, 0.0, 1.0));
-
+    draw(greenCube, vec4(0.0, 1.0, 0.0, 1.0)); */
+    id = requestAnimationFrame(render);
 }
 
 function draw(cube, color)
