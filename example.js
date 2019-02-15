@@ -114,16 +114,21 @@ function render()
             //ty -= 0.01;
         }
     }
-
     stack.push(mvMatrix);
     mvMatrix = mult(translate(tx, 0, zSign*Math.sqrt(1-tx*tx)), mvMatrix);
     gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
     draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
-    mvMatrix = stack.pop();
+    //mvMatrix = stack.pop();
     //console.log(stack.length);
+    stack.push(mvMatrix);
+        mvMatrix = mult(mvMatrix, rotateZ(theta));
+        gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
+        draw(blueCube, vec4(0.0, 0.0, 1.0, 1.0));
+        mvMatrix = stack.pop();
+        mvMatrix = stack.pop();
     /*
     stack.push(mvMatrix);
-        mvMatrix = mult(rotateZ(45), mvMatrix);
+        mvMatrix = mult(, mvMatrix);
         gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
         draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
         //mvMatrix = stack.pop();
