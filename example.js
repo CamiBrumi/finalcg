@@ -5,7 +5,7 @@ var NumVertices  = 36;
 
 var gl;
 
-var fovy = 60.0;  // Field-of-view in Y direction angle (in degrees)
+var fovy = 50.0;  // Field-of-view in Y direction angle (in degrees)
 var aspect;       // Viewport aspect ratio
 var program;
 
@@ -14,11 +14,19 @@ var modelView, projection;
 var eye;
 const at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
+var eye = vec3(0, 0, 10);
+
+
 
 var stack = [];
 
 var theta = 0;
 var tx = 0;
+
+var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
+var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
+var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
+var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 
 
 var xdir = {xpos:true, xneg:false};
@@ -61,6 +69,11 @@ function main()
     modelView = gl.getUniformLocation(program, "modelMatrix");
 
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    var viewMatrix = gl.getUniformLocation(gl.getParameter(gl.CURRENT_PROGRAM), "viewMatrix");
+    gl.uniformMatrix4fv(viewMatrix,false, flatten(lookAt(eye, at, up)));
+
+
 
     render();
 }
@@ -113,12 +126,11 @@ function render()
     var greenCube = cube("g");
     //var magentaCube = cube();
 
-    pMatrix = perspective(fovy, aspect, .1, 10);
+    pMatrix = perspective(fovy, aspect, .1, 1000);
     gl.uniformMatrix4fv( projection, false, flatten(pMatrix) );
 
-    theta += 0.1;
-    eye = vec3(0, 0, 4);
-    mvMatrix = lookAt(eye, at , up);
+    theta += 1;
+
 
     //handling the circular movement
 
@@ -143,25 +155,30 @@ function render()
         }
     }
 
+    //stack.push(mvMatrix);
+    var mvMatrix = translate(0, 2, 0);
     stack.push(mvMatrix);
     //mvMatrix = mult(rotateY(theta), mvMatrix); //translate(tx, 0, zSign*Math.sqrt(1-tx*tx))
-    mvMatrix = mult(translate(tx, 0, zSign*Math.sqrt(1-tx*tx)), mvMatrix);
+    //mvMatrix = mult(translate(tx, 0, zSign*Math.sqrt(1-tx*tx)), mvMatrix);
+    mvMatrix = mult(rotateY(theta), mvMatrix);
     gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
-    draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
-    draw(blueCube, vec4(0.0, 0.0, 1.0, 1.0));
+    //draw(blueCube, vec4(0.0, 0.0, 1.0, 1.0));
     draw(greenCube, vec4(0.0, 1.0, 0.0, 1.0));
+    //draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
     //mvMatrix = stack.pop();
     //mvMatrix = stack.pop();
-    console.log(stack.length);
+    //console.log(stack.length);
     //mvMatrix = stack.pop();
     //console.log(stack.length);
 
-    /*stack.push(mvMatrix);
-        mvMatrix = mult(rotateY(theta), mvMatrix);
+    stack.push(mvMatrix);
+        mvMatrix = mult(translate(tx, 0, zSign*Math.sqrt(1-tx*tx)), mvMatrix); //translate(tx, 0, zSign*Math.sqrt(1-tx*tx))
         gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
-        draw(greenCube, vec4(0.0, 1.0, 0.0, 1.0));
-        mvMatrix = stack.pop();
-    /*
+        //draw(greenCube, vec4(0.0, 1.0, 0.0, 1.0));
+        draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
+        draw(blueCube, vec4(0.0, 0.0, 1.0, 1.0));
+        //mvMatrix = stack.pop();
+/*
     stack.push(mvMatrix);
         mvMatrix = mult(, mvMatrix);
         gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
@@ -258,4 +275,66 @@ function quad(a, b, c, d)
     }
 
     return verts;
+}
+
+function newellMethod(a, b, c, d) {
+    var nx = (a[1] - b[1]) * (a[2] + b[2]) + (b[1] - c[1]) * (b[2] + c[2]) + (c[1] - a[1]) * (c[2] + a[2]);
+    var ny = (a[2] - b[2]) * (a[0] + b[0]) + (b[2] - c[2]) * (b[0] + c[0]) + (c[2] - a[2]) * (c[0] + a[0]);
+    var nz = (a[0] - b[0]) * (a[1] + b[1]) + (b[0] - c[0]) * (b[1] + c[1]) + (c[0] - a[0]) * (c[1] + a[1]);
+
+    var norm = Math.sqrt(nx*nx + ny*ny + nz*nz);
+
+    normals.push(vec3(nx/norm, ny/norm, nz/norm)); // normalized normal vectors
+}
+
+window.onload = function init() {
+
+
+    var diffuseProduct = mult(lightDiffuse, materialDiffuse);
+    var specularProduct = mult(lightSpecular, materialSpecular);
+    var ambientProduct = mult(lightAmbient, materialAmbient);
+
+
+    gl.uniform4fv(gl.getUniformLocation(program,
+        "diffuseProduct"), flatten(diffuseProduct));
+    gl.uniform4fv(gl.getUniformLocation(program,
+        "specularProduct"), flatten(specularProduct));
+    gl.uniform4fv(gl.getUniformLocation(program,
+        "ambientProduct"), flatten(ambientProduct));
+    gl.uniform4fv(gl.getUniformLocation(program,
+        "lightPosition"), flatten(lightPosition));
+    gl.uniform1f(gl.getUniformLocation(program,
+        "shininess"), materialShininess);
+
+    /*
+    var vBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
+
+    var vPosition = gl.getAttribLocation( program, "vPosition");
+    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPosition);
+
+    var vBuffer2 = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer2);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW);
+
+    var vNormal = gl.getAttribLocation( program, "vNormal");
+    gl.vertexAttribPointer(vNormal, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vNormal);
+
+    modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
+    projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
+
+    configureCubeMap();
+
+    var image = new Image();
+    image.crossOrigin = "";
+    image.src = "https://web.cs.wpi.edu/~jmcuneo/a.jpg";
+
+    image.onload = function() {
+        configureCubeMapImage(image);
+    }
+
+    render(); */
 }
