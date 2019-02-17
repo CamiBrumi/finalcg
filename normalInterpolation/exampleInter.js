@@ -77,6 +77,13 @@ function cube()
     var verts = [];
     orderVertices = []; // we update it in the quad function
     normals = []; // TODO maybe this will give errors
+
+
+    for (var i = 0; i < 8; i++) {
+        map.set(i.toString(), []);
+    }
+
+
     verts = verts.concat(quad( 1, 0, 3, 2 ));
     verts = verts.concat(quad( 2, 3, 7, 6 ));
     verts = verts.concat(quad( 3, 0, 4, 7 ));
@@ -84,34 +91,77 @@ function cube()
     verts = verts.concat(quad( 4, 5, 6, 7 ));
     verts = verts.concat(quad( 5, 4, 0, 1 ));
 
+    //var firstN = newellMethod(vertices[orderVertices[0]], vertices[neigh[0][0]], vertices[neigh[0][1]]);
+
+
     // now we compute the normals for every vertex (interpolation of the normals)
     for (var i = 0; i < orderVertices.length; i++) {
         //var normalsLocal = [];
+        var nx = 0;
+        var ny = 0;
+        var nz = 0;
+        var neigh = map.get(orderVertices[i].toString()); // this is an array of arrays. Every array represents two neighbors of this vertex that together form a triangle. In this array we store only the positions of the vertices in the vertices array, not the vertices themselves
+        //console.log(orderVertices[i]);
+        //console.log(neigh);
 
-        var neigh = map.get(orderVertices[i]); // this is an array of arrays. Every array represents two neighbors of this vertex that together form a triangle.
-        var firstN = newellMethod(vertices[orderVertices[0]], neigh[0], neigh[1]);
-        var nx = firstN[0];
-        var ny = firstN[1];
-        var nz = firstN[2];
-        for (var j = 1; j < neigh.length; j++) {
+        for (var j = 0; j < neigh.length; j++) {
             // now we compute the normal of each triangle
-            var n = newellMethod(vertices[orderVertices[i]], neigh[0], neigh[1]);
+            var n = newellMethod(vertices[orderVertices[i]], vertices[neigh[j][0]], vertices[neigh[j][1]]);
             nx += n[0];
             ny += n[1];
             nz += n[2];
 
 
         }
+
         //we compute the normal of the vertex orderVertices[i]
         var norm = Math.sqrt(nx*nx + ny*ny + nz*nz);
+        //console.log(nx + " " + ny + " " + nz);
+        //console.log(norm);
         normals.push(vec3(nx/norm, ny/norm, nz/norm)); // these are the normals of the vertices! (using interpolation)
 
+    }
+    console.log(normals);
+    return verts;
+}
+
+function quad(a, b, c, d) //a, b, c , d are numbers (the position of the vertices that form a face in the vertices array)
+{
+    var verts = [];
+
+    /*var vertices = [
+        vec4( -0.5, -0.5,  0.5, 1.0 ),
+        vec4( -0.5,  0.5,  0.5, 1.0 ),
+        vec4(  0.5,  0.5,  0.5, 1.0 ),
+        vec4(  0.5, -0.5,  0.5, 1.0 ),
+        vec4( -0.5, -0.5, -0.5, 1.0 ),
+        vec4( -0.5,  0.5, -0.5, 1.0 ),
+        vec4(  0.5,  0.5, -0.5, 1.0 ),
+        vec4(  0.5, -0.5, -0.5, 1.0 )
+    ];*/
+
+    map.get(a.toString()).push([b, c]);
+    map.get(a.toString()).push([c, d]);
+    map.get(b.toString()).push([a, c]);
+    map.get(c.toString()).push([a, b]);
+    map.get(c.toString()).push([a, d]);
+    map.get(d.toString()).push([a, c]);
+
+
+
+    var indices = [ a, b, c, a, c, d ];
+    orderVertices.push(a, b, c, a, c, d);
+
+    for ( var i = 0; i < indices.length; ++i )
+    {
+        verts.push( vertices[indices[i]] );
     }
 
     return verts;
 }
 
 function newellMethod(a, b, c) {
+    //console.log("newell: " + a);
     var nx = (a[1] - b[1]) * (a[2] + b[2]) + (b[1] - c[1]) * (b[2] + c[2]) + (c[1] - a[1]) * (c[2] + a[2]);
     var ny = (a[2] - b[2]) * (a[0] + b[0]) + (b[2] - c[2]) * (b[0] + c[0]) + (c[2] - a[2]) * (c[0] + a[0]);
     var nz = (a[0] - b[0]) * (a[1] + b[1]) + (b[0] - c[0]) * (b[1] + c[1]) + (c[0] - a[0]) * (c[1] + a[1]);
@@ -124,9 +174,9 @@ function newellMethod(a, b, c) {
 function render()
 {
     var redCube = cube();
-    var blueCube = cube();
-    var greenCube = cube();
-    var magentaCube = cube();
+    //var blueCube = cube();
+    //var greenCube = cube();
+    //var magentaCube = cube();
 
     pMatrix = perspective(fovy, aspect, .1, 10);
     gl.uniformMatrix4fv( projection, false, flatten(pMatrix) );
@@ -135,12 +185,12 @@ function render()
     mvMatrix = lookAt(eye, at , up);
 
     stack.push(mvMatrix);
-        mvMatrix = mult(rotateZ(45), mvMatrix);
+        //mvMatrix = mult(rotateZ(45), mvMatrix);
         gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
         draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
         //mvMatrix = stack.pop();
 
-        stack.push(mvMatrix);
+        /*stack.push(mvMatrix);
             mvMatrix = mult(mvMatrix, translate(1, 1, 1));
             gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
             draw(magentaCube, vec4(1.0, 0.0, 1.0, 1.0));
@@ -154,7 +204,7 @@ function render()
     mvMatrix = stack.pop();
 
     gl.uniformMatrix4fv( modelView, false, flatten(mvMatrix) );
-    draw(greenCube, vec4(0.0, 1.0, 0.0, 1.0));
+    draw(greenCube, vec4(0.0, 1.0, 0.0, 1.0));*/
 
 }
 
@@ -185,44 +235,4 @@ function draw(cube, color)
 
     gl.drawArrays( gl.TRIANGLES, 0, NumVertices );
 
-}
-
-
-function quad(a, b, c, d) //a, b, c , d are numbers (the position of the vertices that form a face in the vertices array)
-{
-    var verts = [];
-
-    /*var vertices = [
-        vec4( -0.5, -0.5,  0.5, 1.0 ),
-        vec4( -0.5,  0.5,  0.5, 1.0 ),
-        vec4(  0.5,  0.5,  0.5, 1.0 ),
-        vec4(  0.5, -0.5,  0.5, 1.0 ),
-        vec4( -0.5, -0.5, -0.5, 1.0 ),
-        vec4( -0.5,  0.5, -0.5, 1.0 ),
-        vec4(  0.5,  0.5, -0.5, 1.0 ),
-        vec4(  0.5, -0.5, -0.5, 1.0 )
-    ];*/
-
-    map.set(a.toString(), []);
-    map.set(b.toString(), []);
-    map.set(c.toString(), []);
-    map.set(d.toString(), []);
-
-    map.get(a.toString()).push([b, c]);
-    map.get(a.toString()).push([c, d]);
-    map.get(b.toString()).push([a, c]);
-    map.get(c.toString()).push([a, b]);
-    map.get(c.toString()).push([a, d]);
-    map.get(d.toString()).push([a, c]);
-
-
-    var indices = [ a, b, c, a, c, d ];
-    orderVertices.push(a, b, c, a, c, d);
-
-    for ( var i = 0; i < indices.length; ++i )
-    {
-        verts.push( vertices[indices[i]] );
-    }
-
-    return verts;
 }
