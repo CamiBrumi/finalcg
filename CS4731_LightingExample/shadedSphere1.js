@@ -1,5 +1,6 @@
 var canvas;
 var gl;
+var program;
 
 var numTimesToSubdivide = 8;
 
@@ -102,7 +103,7 @@ function cube()
         var norm = Math.sqrt(nx*nx + ny*ny + nz*nz);
         //console.log(nx + " " + ny + " " + nz);
         //console.log(norm);
-        normals.push(vec3(nx/norm, ny/norm, nz/norm)); // these are the normals of the vertices! (using interpolation)
+        normals.push(vec4(nx/norm, ny/norm, nz/norm, 0.0)); // these are the normals of the vertices! (using interpolation)
 
     }
     console.log(normals);
@@ -277,7 +278,7 @@ window.onload = function init() {
     //
     //  Load shaders and initialize attribute buffers
     //
-    var program = initShaders( gl, "vertex-shader", "fragment-shader" );
+    program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
 
     var diffuseProduct = mult(lightDiffuse, materialDiffuse);
@@ -297,11 +298,23 @@ window.onload = function init() {
         "shininess"), materialShininess);
 
 
-    tetrahedron(va, vb, vc, vd, numTimesToSubdivide);
+    //tetrahedron(va, vb, vc, vd, numTimesToSubdivide);
+
+
+    //draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
+
+
+
+    render();
+}
+
+
+function render() {
+    var redCube = cube();
 
     var vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(redCube), gl.STATIC_DRAW);
 
     var vPosition = gl.getAttribLocation( program, "vPosition");
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
@@ -309,7 +322,7 @@ window.onload = function init() {
 
     var vBuffer2 = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer2);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(normals), gl.STATIC_DRAW);
 
     var vNormal = gl.getAttribLocation( program, "vNormal");
     gl.vertexAttribPointer(vNormal, 4, gl.FLOAT, false, 0, 0);
@@ -318,12 +331,6 @@ window.onload = function init() {
     modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
-    render();
-}
-
-
-function render() {
-
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     eye = vec3(0, 0, 4);
@@ -331,13 +338,15 @@ function render() {
 
     modelViewMatrix = lookAt(eye, at , up);
 
-    var redCube = cube();
+
 
     projectionMatrix = perspective(fovy, canvas.width/canvas.height, .1, 1000);//ortho(left, right, bottom, ytop, near, far);
 
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
 
-    for( var i=0; i<index; i+=3)
-        gl.drawArrays( gl.TRIANGLES, i, 3 );
+    /*for( var i=0; i<index; i+=3)
+        gl.drawArrays( gl.TRIANGLES, i, 3 );*/
+    gl.drawArrays( gl.TRIANGLES, 0, 36 );
+
 }
