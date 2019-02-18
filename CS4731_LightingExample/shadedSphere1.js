@@ -23,10 +23,18 @@ var vb = vec4(0.0, 0.942809, 0.333333, 1);
 var vc = vec4(-0.816497, -0.471405, 0.333333, 1);
 var vd = vec4(0.816497, -0.471405, 0.333333,1);
 
-var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
+/*var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
 var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
 var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
-var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );*/
+var a = 1;
+var b = 1;
+var c = 1;
+var lightCoord = vec4(a, b, c, 1.0);
+var lightPosition = lightCoord;
+var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
+var lightDiffuse = lightCoord;
+var lightSpecular = lightCoord;
 
 var materialAmbient = vec4( 1.0, 0.0, 1.0, 1.0 );
 var materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0 );
@@ -36,21 +44,21 @@ var materialShininess = 20.0;
 var modelViewMatrix, projectionMatrix;
 var modelViewMatrixLoc, projectionMatrixLoc;
 
-var eye;
+var eye = vec3(0, 0, 4);
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
-var fovy = 45.0;
-
+var fovy = 80.0;
+var increment = 1.0;
 var vertices = [
-    vec4( -0.5, -0.5,  0.5, 1.0 ),
-    vec4( -0.5,  0.5,  0.5, 1.0 ),
-    vec4(  0.5,  0.5,  0.5, 1.0 ),
-    vec4(  0.5, -0.5,  0.5, 1.0 ),
-    vec4( -0.5, -0.5, -0.5, 1.0 ),
-    vec4( -0.5,  0.5, -0.5, 1.0 ),
-    vec4(  0.5,  0.5, -0.5, 1.0 ),
-    vec4(  0.5, -0.5, -0.5, 1.0 )
+    vec4( -0.5, -0.5+increment,  0.5, 1.0 ),
+    vec4( -0.5,  0.5+increment,  0.5, 1.0 ),
+    vec4(  0.5,  0.5+increment,  0.5, 1.0 ),
+    vec4(  0.5, -0.5+increment,  0.5, 1.0 ),
+    vec4( -0.5, -0.5+increment, -0.5, 1.0 ),
+    vec4( -0.5,  0.5+increment, -0.5, 1.0 ),
+    vec4(  0.5,  0.5+increment, -0.5, 1.0 ),
+    vec4(  0.5, -0.5+increment, -0.5, 1.0 )
 ];
 
 var map = new Map();
@@ -67,7 +75,6 @@ function cube()
     for (var i = 0; i < 8; i++) {
         map.set(i.toString(), []);
     }
-
 
     verts = verts.concat(quad( 1, 0, 3, 2 ));
     verts = verts.concat(quad( 2, 3, 7, 6 ));
@@ -156,35 +163,6 @@ function newellMethod(a, b, c) {
     return vec3(nx/norm, ny/norm, nz/norm); // normalized normal vectors
 }
 
-function draw(cube, color)
-{
-    var fragColors = [];
-
-    for(var i = 0; i < cube.length; i++)
-    {
-        fragColors.push(color);
-    }
-
-    var pBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, pBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(cube), gl.STATIC_DRAW);
-
-    var vPosition = gl.getAttribLocation(program,  "vPosition");
-    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vPosition);
-
-    var cBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(fragColors), gl.STATIC_DRAW);
-
-    var vColor= gl.getAttribLocation(program,  "vColor");
-    gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vColor);
-
-    gl.drawArrays( gl.TRIANGLES, 0, NumVertices );
-
-}
-
 function triangle(a, b, c) {
 
 
@@ -234,34 +212,6 @@ function tetrahedron(a, b, c, d, n) {
 }
 
 
-function draw(cube, color)
-{
-    var fragColors = [];
-
-    for(var i = 0; i < cube.length; i++)
-    {
-        fragColors.push(color);
-    }
-
-    var pBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, pBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(cube), gl.STATIC_DRAW);
-
-    var vPosition = gl.getAttribLocation(program,  "vPosition");
-    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vPosition);
-
-    var cBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(fragColors), gl.STATIC_DRAW);
-
-    var vColor= gl.getAttribLocation(program,  "vColor");
-    gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vColor);
-
-    gl.drawArrays( gl.TRIANGLES, 0, NumVertices );
-
-}
 
 window.onload = function init() {
 
@@ -298,23 +248,22 @@ window.onload = function init() {
         "shininess"), materialShininess);
 
 
-    //tetrahedron(va, vb, vc, vd, numTimesToSubdivide);
 
 
     //draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
+    pointsArray = cube();
+    renderCube();
 
-
-
-    render();
+    tetrahedron(va, vb, vc, vd, numTimesToSubdivide);
+    renderSphere();
 }
 
 
-function render() {
-    var redCube = cube();
+function renderCube() {
 
     var vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(redCube), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
 
     var vPosition = gl.getAttribLocation( program, "vPosition");
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
@@ -333,7 +282,7 @@ function render() {
 
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    eye = vec3(0, 0, 4);
+
     //eye = vec3(0, 0, 1.5);
 
     modelViewMatrix = lookAt(eye, at , up);
@@ -348,5 +297,41 @@ function render() {
     /*for( var i=0; i<index; i+=3)
         gl.drawArrays( gl.TRIANGLES, i, 3 );*/
     gl.drawArrays( gl.TRIANGLES, 0, 36 );
+
+}
+
+function renderSphere() {
+
+    var vBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
+
+    var vPosition = gl.getAttribLocation( program, "vPosition");
+    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPosition);
+
+    var vBuffer2 = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer2);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW);
+
+    var vNormal = gl.getAttribLocation( program, "vNormal");
+    gl.vertexAttribPointer(vNormal, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vNormal);
+
+    modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
+    projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
+
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    modelViewMatrix = lookAt(eye, at , up);
+    projectionMatrix = ortho(left, right, bottom, ytop, near, far);
+
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
+    gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
+
+    for( var i=0; i<index; i+=3)
+        gl.drawArrays( gl.TRIANGLES, i, 3 );
+
+
 
 }
