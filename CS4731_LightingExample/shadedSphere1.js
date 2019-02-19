@@ -1,9 +1,12 @@
 //TODO how do I move the sphere
 // I feel like the cube is only a rectangle
-// do we have to compute the normals each time the cube rotates?
+// do we have to compute the normals each time the cube rotates? no. we compute the normals in the model coordinates and we pass them to view coordinates with the modelViewMotrix
+// should I have done the the normal interpolation in the shaders? with the varying variable?, I did it in the javascript code
+// i am not sure how to translate the sphere
+
 
 // flat shading
-
+var theta = 0;
 var canvas;
 var gl;
 var program;
@@ -50,21 +53,21 @@ var materialShininess = 20.0;
 var modelViewMatrix, projectionMatrix;
 var modelViewMatrixLoc, projectionMatrixLoc;
 
-var eye = vec3(0, 0, 4);
-var at = vec3(1.0, 0.0, 0.0);
+var eye = vec3(1, 0, 2);
+var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
 var fovy = 80.0;
 var increment = 2.0;
 var vertices = [
-    vec4( -0.5+increment, -0.5,  0.5, 1.0 ),
-    vec4( -0.5+increment,  0.5,  0.5, 1.0 ),
-    vec4(  0.5+increment,  0.5,  0.5, 1.0 ),
-    vec4(  0.5+increment, -0.5,  0.5, 1.0 ),
-    vec4( -0.5+increment, -0.5, -0.5, 1.0 ),
-    vec4( -0.5+increment,  0.5, -0.5, 1.0 ),
-    vec4(  0.5+increment,  0.5, -0.5, 1.0 ),
-    vec4(  0.5+increment, -0.5, -0.5, 1.0 )
+    vec4( -0.5, -0.5,  0.5, 1.0 ),
+    vec4( -0.5,  0.5,  0.5, 1.0 ),
+    vec4(  0.5,  0.5,  0.5, 1.0 ),
+    vec4(  0.5, -0.5,  0.5, 1.0 ),
+    vec4( -0.5, -0.5, -0.5, 1.0 ),
+    vec4( -0.5,  0.5, -0.5, 1.0 ),
+    vec4(  0.5,  0.5, -0.5, 1.0 ),
+    vec4(  0.5, -0.5, -0.5, 1.0 )
 ];
 
 var map = new Map();
@@ -73,6 +76,7 @@ var orderVertices = [];
 
 function cube()
 {
+    pointsArray = [];
     var verts = [];
     orderVertices = []; // we update it in the quad function
     normals = []; // TODO maybe this will give errors
@@ -93,7 +97,7 @@ function cube()
 
 
     // now we compute the normals for every vertex (interpolation of the normals)
-    for (var i = 0; i < orderVertices.length; i++) {
+    /*for (var i = 0; i < orderVertices.length; i++) {
         //var normalsLocal = [];
         var nx = 0;
         var ny = 0;
@@ -118,7 +122,7 @@ function cube()
         //console.log(norm);
         normals.push(vec4(nx/norm, ny/norm, nz/norm, 0.0)); // these are the normals of the vertices! (using interpolation)
 
-    }
+    }*/
     //console.log(normals);
     return verts;
 }
@@ -136,23 +140,25 @@ function quad(a, b, c, d) //a, b, c , d are numbers (the position of the vertice
         vec4( -0.5,  0.5, -0.5, 1.0 ),
         vec4(  0.5,  0.5, -0.5, 1.0 ),
         vec4(  0.5, -0.5, -0.5, 1.0 )
-    ];*/
+    ];
 
     map.get(a.toString()).push([b, c]);
     map.get(a.toString()).push([c, d]);
     map.get(b.toString()).push([a, c]);
     map.get(c.toString()).push([a, b]);
     map.get(c.toString()).push([a, d]);
-    map.get(d.toString()).push([a, c]);
+    map.get(d.toString()).push([a, c]); */
 
 
 
     var indices = [ a, b, c, a, c, d ];
-    orderVertices.push(a, b, c, a, c, d);
+    //orderVertices.push(a, b, c, a, c, d);
 
     for ( var i = 0; i < indices.length; ++i )
     {
-        verts.push( vertices[indices[i]] );
+        var v = vertices[indices[i]];
+        verts.push(v);
+        normals.push(vec4(v[0], v[1], v[2], 0.0));
     }
 
     return verts;
@@ -209,6 +215,8 @@ function divideTriangle(a, b, c, count) {
 
 
 function tetrahedron(a, b, c, d, n) {
+    pointsArray = [];
+    normalsArray = [];
     divideTriangle(a, b, c, n);
     divideTriangle(d, c, b, n);
     divideTriangle(a, d, b, n);
@@ -255,16 +263,24 @@ window.onload = function init() {
         "shininess"), materialShininess);
 
     //draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
     pointsArray = cube();
     renderCube();
 
     tetrahedron(va, vb, vc, vd, numTimesToSubdivide);
     renderSphere();
+
+
+
+
 }
 
-
+var id;
 function renderCube() {
+
     //gl.cullFace(gl.BACK);
+
     console.log("render Cube");
 
     var vBuffer = gl.createBuffer();
@@ -283,17 +299,22 @@ function renderCube() {
     gl.vertexAttribPointer(vNormal, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vNormal);
 
+
     modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
-    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    //gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     //eye = vec3(0, 0, 1.5);
 
     modelViewMatrix = lookAt(eye, at , up);
+    //modelViewMatrix = mult(translate(1, 0, 0), modelViewMatrix);
 
     projectionMatrix = perspective(fovy, canvas.width/canvas.height, .1, 1000);//ortho(left, right, bottom, ytop, near, far);
 
+    //gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
+    //theta += 10;
+    //modelViewMatrix = mult(rotateY(theta), modelViewMatrix);
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
 
@@ -301,6 +322,7 @@ function renderCube() {
         gl.drawArrays( gl.TRIANGLES, i, 3 );*/
     gl.drawArrays( gl.TRIANGLES, 0, 36 );
 
+    //id = requestAnimationFrame(renderCube);
 }
 
 function renderSphere() {
@@ -323,8 +345,6 @@ function renderSphere() {
 
     modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
-
-    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     modelViewMatrix = lookAt(eye, at , up);
     projectionMatrix = ortho(left, right, bottom, ytop, near, far);
