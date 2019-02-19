@@ -1,3 +1,9 @@
+//TODO how do I move the sphere
+// I feel like the cube is only a rectangle
+// do we have to compute the normals each time the cube rotates?
+
+// flat shading
+
 var canvas;
 var gl;
 var program;
@@ -45,20 +51,20 @@ var modelViewMatrix, projectionMatrix;
 var modelViewMatrixLoc, projectionMatrixLoc;
 
 var eye = vec3(0, 0, 4);
-var at = vec3(0.0, 0.0, 0.0);
+var at = vec3(1.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
 var fovy = 80.0;
-var increment = 1.0;
+var increment = 2.0;
 var vertices = [
-    vec4( -0.5, -0.5+increment,  0.5, 1.0 ),
-    vec4( -0.5,  0.5+increment,  0.5, 1.0 ),
-    vec4(  0.5,  0.5+increment,  0.5, 1.0 ),
-    vec4(  0.5, -0.5+increment,  0.5, 1.0 ),
-    vec4( -0.5, -0.5+increment, -0.5, 1.0 ),
-    vec4( -0.5,  0.5+increment, -0.5, 1.0 ),
-    vec4(  0.5,  0.5+increment, -0.5, 1.0 ),
-    vec4(  0.5, -0.5+increment, -0.5, 1.0 )
+    vec4( -0.5+increment, -0.5,  0.5, 1.0 ),
+    vec4( -0.5+increment,  0.5,  0.5, 1.0 ),
+    vec4(  0.5+increment,  0.5,  0.5, 1.0 ),
+    vec4(  0.5+increment, -0.5,  0.5, 1.0 ),
+    vec4( -0.5+increment, -0.5, -0.5, 1.0 ),
+    vec4( -0.5+increment,  0.5, -0.5, 1.0 ),
+    vec4(  0.5+increment,  0.5, -0.5, 1.0 ),
+    vec4(  0.5+increment, -0.5, -0.5, 1.0 )
 ];
 
 var map = new Map();
@@ -113,7 +119,7 @@ function cube()
         normals.push(vec4(nx/norm, ny/norm, nz/norm, 0.0)); // these are the normals of the vertices! (using interpolation)
 
     }
-    console.log(normals);
+    //console.log(normals);
     return verts;
 }
 
@@ -165,8 +171,6 @@ function newellMethod(a, b, c) {
 
 function triangle(a, b, c) {
 
-
-
      pointsArray.push(a);
      pointsArray.push(b);
      pointsArray.push(c);
@@ -215,13 +219,16 @@ function tetrahedron(a, b, c, d, n) {
 
 window.onload = function init() {
 
+
+
+
     canvas = document.getElementById( "gl-canvas" );
 
     gl = WebGLUtils.setupWebGL( canvas );
     if ( !gl ) { alert( "WebGL isn't available" ); }
 
     gl.viewport( 0, 0, canvas.width, canvas.height );
-    gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
+    gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
 
     gl.enable(gl.DEPTH_TEST);
 
@@ -247,9 +254,6 @@ window.onload = function init() {
     gl.uniform1f(gl.getUniformLocation(program,
         "shininess"), materialShininess);
 
-
-
-
     //draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
     pointsArray = cube();
     renderCube();
@@ -260,6 +264,8 @@ window.onload = function init() {
 
 
 function renderCube() {
+    //gl.cullFace(gl.BACK);
+    console.log("render Cube");
 
     var vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
@@ -282,12 +288,9 @@ function renderCube() {
 
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-
     //eye = vec3(0, 0, 1.5);
 
     modelViewMatrix = lookAt(eye, at , up);
-
-
 
     projectionMatrix = perspective(fovy, canvas.width/canvas.height, .1, 1000);//ortho(left, right, bottom, ytop, near, far);
 
@@ -301,7 +304,7 @@ function renderCube() {
 }
 
 function renderSphere() {
-
+    //gl.cullFace(gl.BACK);
     var vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
@@ -331,7 +334,5 @@ function renderSphere() {
 
     for( var i=0; i<index; i+=3)
         gl.drawArrays( gl.TRIANGLES, i, 3 );
-
-
 
 }
