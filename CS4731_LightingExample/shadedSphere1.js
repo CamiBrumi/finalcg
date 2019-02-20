@@ -11,7 +11,7 @@ var canvas;
 var gl;
 var program;
 
-var numTimesToSubdivide = 8;
+var numTimesToSubdivide = 5;
 
 var index = 0;
 
@@ -53,33 +53,23 @@ var materialShininess = 20.0;
 var modelViewMatrix, projectionMatrix;
 var modelViewMatrixLoc, projectionMatrixLoc;
 
-var eye = vec3(1, 0, 2);
+var eye = vec3(0, 0, 2);
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
-var fovy = 80.0;
-var increment = 2.0;
-var vertices = [
-    vec4( -0.5, -0.5,  0.5, 1.0 ),
-    vec4( -0.5,  0.5,  0.5, 1.0 ),
-    vec4(  0.5,  0.5,  0.5, 1.0 ),
-    vec4(  0.5, -0.5,  0.5, 1.0 ),
-    vec4( -0.5, -0.5, -0.5, 1.0 ),
-    vec4( -0.5,  0.5, -0.5, 1.0 ),
-    vec4(  0.5,  0.5, -0.5, 1.0 ),
-    vec4(  0.5, -0.5, -0.5, 1.0 )
-];
+var fovy = 150.0;
 
 var map = new Map();
-var normals = [];
+//var normals = [];
 var orderVertices = [];
+var stack = [];
 
 function cube()
 {
     pointsArray = [];
     var verts = [];
     orderVertices = []; // we update it in the quad function
-    normals = []; // TODO maybe this will give errors
+    normalsArray = []; // TODO maybe this will give errors
 
 
     for (var i = 0; i < 8; i++) {
@@ -131,7 +121,7 @@ function quad(a, b, c, d) //a, b, c , d are numbers (the position of the vertice
 {
     var verts = [];
 
-    /*var vertices = [
+    var vertices = [
         vec4( -0.5, -0.5,  0.5, 1.0 ),
         vec4( -0.5,  0.5,  0.5, 1.0 ),
         vec4(  0.5,  0.5,  0.5, 1.0 ),
@@ -142,7 +132,7 @@ function quad(a, b, c, d) //a, b, c , d are numbers (the position of the vertice
         vec4(  0.5, -0.5, -0.5, 1.0 )
     ];
 
-    map.get(a.toString()).push([b, c]);
+    /*map.get(a.toString()).push([b, c]);
     map.get(a.toString()).push([c, d]);
     map.get(b.toString()).push([a, c]);
     map.get(c.toString()).push([a, b]);
@@ -158,7 +148,7 @@ function quad(a, b, c, d) //a, b, c , d are numbers (the position of the vertice
     {
         var v = vertices[indices[i]];
         verts.push(v);
-        normals.push(vec4(v[0], v[1], v[2], 0.0));
+        normalsArray.push(vec4(v[0], v[1], v[2], 0.0));
     }
 
     return verts;
@@ -265,11 +255,27 @@ window.onload = function init() {
     //draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
+    projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
+
+    modelViewMatrix = lookAt(eye, at , up);
+    stack.push(modelViewMatrix);
+    projectionMatrix = perspective(fovy, canvas.width/canvas.height, .1, 1000);
+
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
+    gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
+
     pointsArray = cube();
-    renderCube();
+    modelViewMatrix = mult(modelViewMatrix, translate(2.0, 0.0, 0.0));
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
+    render(true);
 
     tetrahedron(va, vb, vc, vd, numTimesToSubdivide);
-    renderSphere();
+    modelViewMatrix = stack.pop();
+    stack.push(modelViewMatrix);
+    modelViewMatrix = mult(modelViewMatrix, translate(-2.0, 0.0, 0.0));
+    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
+    render(false);
 
 
 
@@ -277,11 +283,8 @@ window.onload = function init() {
 }
 
 var id;
-function renderCube() {
+function render(isCube) {
 
-    //gl.cullFace(gl.BACK);
-
-    console.log("render Cube");
 
     var vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
@@ -293,37 +296,32 @@ function renderCube() {
 
     var vBuffer2 = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer2);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(normals), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW);
 
     var vNormal = gl.getAttribLocation( program, "vNormal");
     gl.vertexAttribPointer(vNormal, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vNormal);
 
 
-    modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
-    projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
-    //gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    //eye = vec3(0, 0, 1.5);
-
-    modelViewMatrix = lookAt(eye, at , up);
-    //modelViewMatrix = mult(translate(1, 0, 0), modelViewMatrix);
-
-    projectionMatrix = perspective(fovy, canvas.width/canvas.height, .1, 1000);//ortho(left, right, bottom, ytop, near, far);
-
-    //gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
-    //theta += 10;
-    //modelViewMatrix = mult(rotateY(theta), modelViewMatrix);
-    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
-    gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
+    var colorLoc = gl.getUniformLocation(program, "vColor");
+    gl.uniform4fv(colorLoc, flatten(vec4(0.0, 1.0, 0.0, 1.0)));
 
     /*for( var i=0; i<index; i+=3)
         gl.drawArrays( gl.TRIANGLES, i, 3 );*/
-    gl.drawArrays( gl.TRIANGLES, 0, 36 );
+
+    if (isCube) {
+        gl.drawArrays( gl.TRIANGLES, 0, 36 );
+    } else {
+        for( var i=0; i<index; i+=3)
+            gl.drawArrays( gl.TRIANGLES, i, 3 );
+    }
+
 
     //id = requestAnimationFrame(renderCube);
 }
+/*
 
 function renderSphere() {
     //gl.cullFace(gl.BACK);
@@ -347,12 +345,17 @@ function renderSphere() {
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
 
     modelViewMatrix = lookAt(eye, at , up);
-    projectionMatrix = ortho(left, right, bottom, ytop, near, far);
+    //projectionMatrix = ortho(left, right, bottom, ytop, near, far);
+    projectionMatrix = perspective(fovy, canvas.width/canvas.height, .1, 1000);
 
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
+
+    var colorLoc = gl.getUniformLocation(program, "vColor");
+    gl.uniform4fv(colorLoc, flatten(vec4(0.0, 1.0, 0.0, 1.0)));
 
     for( var i=0; i<index; i+=3)
         gl.drawArrays( gl.TRIANGLES, i, 3 );
 
 }
+*/
