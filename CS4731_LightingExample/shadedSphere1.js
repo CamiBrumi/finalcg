@@ -4,6 +4,11 @@
 // should I have done the the normal interpolation in the shaders? with the varying variable?, I did it in the javascript code
 // i am not sure how to translate the sphere
 
+//for thursday:
+// how to do the translation
+// I think the flat shading switch is not working
+//
+
 
 // flat shading
 var theta = 0;
@@ -57,7 +62,7 @@ var eye = vec3(0, 0, 10);
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
-var fovy = 80.0;
+var fovy = 90.0;
 
 var map = new Map();
 var orderVertices = [];
@@ -67,10 +72,13 @@ var stack = [];
 var cubePoints = [];
 var spherePoints = [];
 var cubeNormals = [];
+var cubeNormalsFlat = []
 var sphereNormals = [];
 
-function cube()
-{
+var shadeType = {gourand:true, flat:false};
+var sportLight = 1;
+
+function cube() {
     pointsArray = [];
     var verts = [];
     orderVertices = []; // we update it in the quad function
@@ -100,23 +108,18 @@ function cube()
         var neigh = map.get(orderVertices[i].toString()); // this is an array of arrays. Every array represents two neighbors of this vertex that together form a triangle. In this array we store only the positions of the vertices in the vertices array, not the vertices themselves
         //console.log(orderVertices[i]);
         //console.log(neigh);
-
         for (var j = 0; j < neigh.length; j++) {
             // now we compute the normal of each triangle
             var n = newellMethod(vertices[orderVertices[i]], vertices[neigh[j][0]], vertices[neigh[j][1]]);
             nx += n[0];
             ny += n[1];
             nz += n[2];
-
-
         }
-
         //we compute the normal of the vertex orderVertices[i]
         var norm = Math.sqrt(nx*nx + ny*ny + nz*nz);
         //console.log(nx + " " + ny + " " + nz);
         //console.log(norm);
         normals.push(vec4(nx/norm, ny/norm, nz/norm, 0.0)); // these are the normals of the vertices! (using interpolation)
-
     }*/
     pointsArray = verts;
 }
@@ -146,6 +149,7 @@ function quad(a, b, c, d) //a, b, c , d are numbers (the position of the vertice
 
 
     var indices = [ a, b, c, a, c, d ];
+    var n = newellMethod(vertices[a], vertices[b], vertices[c]);
     //orderVertices.push(a, b, c, a, c, d);
 
     for ( var i = 0; i < indices.length; ++i )
@@ -153,12 +157,13 @@ function quad(a, b, c, d) //a, b, c , d are numbers (the position of the vertice
         var v = vertices[indices[i]];
         verts.push(v);
         normalsArray.push(vec4(v[0], v[1], v[2], 0.0));
-    }
+        cubeNormalsFlat.push(vec4(n[0], n[1], n[2], 0.0));
 
+    }
     return verts;
 }
 
-function newellMethod(a, b, c) {
+function newellMethod(a, b, c) { // a, b, c are vertices
     //console.log("newell: " + a);
     var nx = (a[1] - b[1]) * (a[2] + b[2]) + (b[1] - c[1]) * (b[2] + c[2]) + (c[1] - a[1]) * (c[2] + a[2]);
     var ny = (a[2] - b[2]) * (a[0] + b[0]) + (b[2] - c[2]) * (b[0] + c[0]) + (c[2] - a[2]) * (c[0] + a[0]);
@@ -171,17 +176,17 @@ function newellMethod(a, b, c) {
 
 function triangle(a, b, c) {
 
-     pointsArray.push(a);
-     pointsArray.push(b);
-     pointsArray.push(c);
+    pointsArray.push(a);
+    pointsArray.push(b);
+    pointsArray.push(c);
 
-     // normals are vectors
+    // normals are vectors
 
-     normalsArray.push(a[0],a[1], a[2], 0.0);
-     normalsArray.push(b[0],b[1], b[2], 0.0);
-     normalsArray.push(c[0],c[1], c[2], 0.0);
+    normalsArray.push(a[0],a[1], a[2], 0.0);
+    normalsArray.push(b[0],b[1], b[2], 0.0);
+    normalsArray.push(c[0],c[1], c[2], 0.0);
 
-     index += 3;
+    index += 3;
 
 }
 
@@ -282,36 +287,77 @@ window.onload = function init() {
     spherePoints = pointsArray;
     sphereNormals = normalsArray;
 
+    window.onkeypress = function (event) {
+        var key = event.key;
+        switch (key) {
+            case 'p':
+                break;
+            case 'P':
+                break;
+            case 'm': // gourand
+                console.log("gourand");
+                shadeType.gourand = true;
+                shadeType.flat = false;
+                break;
+            case 'M': // flat
+                console.log("flat");
+                shadeType.gourand = false;
+                shadeType.flat = true;
+                break;
+        }
+    }
 
-    // CUBES
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(5.0, -1.0, 0.0))) );
-    render(true, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, cubeNormals);
-
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(8.0, -6.0, 0.0))) );
-    render(true, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, cubeNormals);
-
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(2.0, -6.0, 0.0))) );
-    render(true, vec4(1.0, 1.0, 0.0, 1.0), cubePoints, cubeNormals);
-
-    // SPHERES
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(0.0, 4.0, 0.0))) );
-    render(false, vec4(0.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals);
-
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-5.0, -1.0, 0.0))) );
-    render(false, vec4(0.0, 0.0, 1.0, 1.0), spherePoints, sphereNormals);
-
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-8.0, -6.0, 0.0))) );
-    render(false, vec4(1.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals);
-
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-2.0, -6.0, 0.0))) );
-    render(false, vec4(1.0, 0.0, 1.0, 1.0), spherePoints, sphereNormals);
-
+    render();
 
 
 }
 
 var id;
-function render(isCube, color, points, normals) {
+function render() {
+    // CUBES
+    var normalsToUse = [];
+    if (shadeType.gourand) {
+        normalsToUse = cubeNormals;
+    } else if (shadeType.flat) {
+        normalsToUse = cubeNormalsFlat;
+    }
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(5.0, -1.0, 0.0))) );
+    draw(true, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, normalsToUse);
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(8.0, -6.0, 0.0))) );
+    draw(true, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, normalsToUse);
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(2.0, -6.0, 0.0))) );
+    draw(true, vec4(1.0, 1.0, 0.0, 1.0), cubePoints, normalsToUse);
+
+    // SPHERES
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(0.0, 4.0, 0.0))) );
+    draw(false, vec4(0.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals);
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-5.0, -1.0, 0.0))) );
+    draw(false, vec4(0.0, 0.0, 1.0, 1.0), spherePoints, sphereNormals);
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-8.0, -6.0, 0.0))) );
+    draw(false, vec4(1.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals);
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-2.0, -6.0, 0.0))) );
+    draw(false, vec4(1.0, 0.0, 1.0, 1.0), spherePoints, sphereNormals);
+
+
+
+
+
+
+
+
+    
+
+
+    id = requestAnimationFrame(render);
+}
+
+
+function draw(isCube, color, points, normals) {
 
 
     var vBuffer = gl.createBuffer();
@@ -344,43 +390,33 @@ function render(isCube, color, points, normals) {
     }
 
 
-    //id = requestAnimationFrame(renderCube);
+
 }
 /*
-
 function renderSphere() {
     //gl.cullFace(gl.BACK);
     var vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
-
     var vPosition = gl.getAttribLocation( program, "vPosition");
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
-
     var vBuffer2 = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer2);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW);
-
     var vNormal = gl.getAttribLocation( program, "vNormal");
     gl.vertexAttribPointer(vNormal, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vNormal);
-
     modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
-
     modelViewMatrix = lookAt(eye, at , up);
     //projectionMatrix = ortho(left, right, bottom, ytop, near, far);
     projectionMatrix = perspective(fovy, canvas.width/canvas.height, .1, 1000);
-
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
-
     var colorLoc = gl.getUniformLocation(program, "vColor");
     gl.uniform4fv(colorLoc, flatten(vec4(0.0, 1.0, 0.0, 1.0)));
-
     for( var i=0; i<index; i+=3)
         gl.drawArrays( gl.TRIANGLES, i, 3 );
-
 }
 */
