@@ -57,12 +57,17 @@ var eye = vec3(0, 0, 10);
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
-var fovy = 50.0;
+var fovy = 80.0;
 
 var map = new Map();
-//var normals = [];
 var orderVertices = [];
 var stack = [];
+
+// objects and vectors in model coordinates:
+var cubePoints = [];
+var spherePoints = [];
+var cubeNormals = [];
+var sphereNormals = [];
 
 function cube()
 {
@@ -113,8 +118,7 @@ function cube()
         normals.push(vec4(nx/norm, ny/norm, nz/norm, 0.0)); // these are the normals of the vertices! (using interpolation)
 
     }*/
-    //console.log(normals);
-    return verts;
+    pointsArray = verts;
 }
 
 function quad(a, b, c, d) //a, b, c , d are numbers (the position of the vertices that form a face in the vertices array)
@@ -215,6 +219,7 @@ function tetrahedron(a, b, c, d, n) {
 
 
 
+
 window.onload = function init() {
 
 
@@ -268,30 +273,50 @@ window.onload = function init() {
     modelMatrix = translate(0, 2, 0);
     stack.push(modelMatrix);
 
-    pointsArray = cube();
-    modelMatrix = mult(modelMatrix, translate(2.0, 0.0, 0.0));
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
-    render(true);
+    // we compute the points and the normals in model coordinates.
+    cube();
+    cubePoints = pointsArray;
+    cubeNormals = normalsArray;
 
     tetrahedron(va, vb, vc, vd, numTimesToSubdivide);
-    modelMatrix = stack.pop();
-    stack.push(modelMatrix);
-    modelMatrix = mult(modelMatrix, translate(-2.0, 0.0, 0.0));
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
-    render(false);
+    spherePoints = pointsArray;
+    sphereNormals = normalsArray;
 
+
+    // CUBES
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(5.0, -1.0, 0.0))) );
+    render(true, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, cubeNormals);
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(8.0, -6.0, 0.0))) );
+    render(true, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, cubeNormals);
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(2.0, -6.0, 0.0))) );
+    render(true, vec4(1.0, 1.0, 0.0, 1.0), cubePoints, cubeNormals);
+
+    // SPHERES
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(0.0, 4.0, 0.0))) );
+    render(false, vec4(0.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals);
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-5.0, -1.0, 0.0))) );
+    render(false, vec4(0.0, 0.0, 1.0, 1.0), spherePoints, sphereNormals);
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-8.0, -6.0, 0.0))) );
+    render(false, vec4(1.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals);
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-2.0, -6.0, 0.0))) );
+    render(false, vec4(1.0, 0.0, 1.0, 1.0), spherePoints, sphereNormals);
 
 
 
 }
 
 var id;
-function render(isCube) {
+function render(isCube, color, points, normals) {
 
 
     var vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW);
 
     var vPosition = gl.getAttribLocation( program, "vPosition");
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
@@ -299,17 +324,14 @@ function render(isCube) {
 
     var vBuffer2 = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer2);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(normals), gl.STATIC_DRAW);
 
     var vNormal = gl.getAttribLocation( program, "vNormal");
     gl.vertexAttribPointer(vNormal, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vNormal);
 
-
-
-
     var colorLoc = gl.getUniformLocation(program, "vColor");
-    gl.uniform4fv(colorLoc, flatten(vec4(0.0, 1.0, 0.0, 1.0)));
+    gl.uniform4fv(colorLoc, flatten(color));
 
     /*for( var i=0; i<index; i+=3)
         gl.drawArrays( gl.TRIANGLES, i, 3 );*/
