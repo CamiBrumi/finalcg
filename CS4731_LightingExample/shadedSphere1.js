@@ -7,10 +7,14 @@
 //for thursday:
 // how to do the translation
 // spotlight not working
+// why the shapes are streched?
 // I don't know why the background is white
 // culling not working properly:
 //gl.enable(gl.CULL_FACE);
 //gl.cullFace(gl.FRONT);
+
+// TODO:
+//1. the switch keys for the spotlight
 
 
 // flat shading
@@ -328,31 +332,26 @@ function render() {
         normalsToUse = cubeNormalsFlat;
     }
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(5.0, -1.0, 0.0))) );
-    draw(true, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, normalsToUse);
-
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(8.0, -6.0, 0.0))) );
     draw(true, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, normalsToUse);
 
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(8.0, -6.0, 0.0))) );
+    draw(true, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, normalsToUse);
+
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(2.0, -6.0, 0.0))) );
-    draw(true, vec4(1.0, 1.0, 0.0, 1.0), cubePoints, normalsToUse);
+    draw(true, vec4(0.0, 0.0, 1.0, 1.0), cubePoints, normalsToUse);
 
     // SPHERES
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(0.0, 4.0, 0.0))) );
-    draw(false, vec4(0.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals);
-
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-5.0, -1.0, 0.0))) );
-    draw(false, vec4(0.0, 0.0, 1.0, 1.0), spherePoints, sphereNormals);
-
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-8.0, -6.0, 0.0))) );
     draw(false, vec4(1.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals);
 
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-2.0, -6.0, 0.0))) );
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-5.0, -1.0, 0.0))) );
+    draw(false, vec4(0.3, 0.3, 1.0, 1.0), spherePoints, sphereNormals);
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-8.0, -6.0, 0.0))) );
     draw(false, vec4(1.0, 0.0, 1.0, 1.0), spherePoints, sphereNormals);
 
-
-
-
-
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-2.0, -6.0, 0.0))) );
+    draw(false, vec4(0.5, 0.5, 0.5, 1.0), spherePoints, sphereNormals);
 
 
 
