@@ -6,8 +6,11 @@
 
 //for thursday:
 // how to do the translation
-// I think the flat shading switch is not working
-//
+// spotlight not working
+// I don't know why the background is white
+// culling not working properly:
+//gl.enable(gl.CULL_FACE);
+//gl.cullFace(gl.FRONT);
 
 
 // flat shading
@@ -237,8 +240,11 @@ window.onload = function init() {
 
     gl.viewport( 0, 0, canvas.width, canvas.height );
     gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
-
     gl.enable(gl.DEPTH_TEST);
+    //gl.enable(gl.CULL_FACE);
+    //gl.cullFace(gl.FRONT);
+
+
 
     //
     //  Load shaders and initialize attribute buffers

@@ -38,9 +38,20 @@ void main()
     //Calculate reflection vector
     vec3 R = (2.0 * dot(L, N) * N) - L;
 
+    float Kd = dot(L, N);
+    float Ks = pow(max(dot(V, R), 0.0), shininess);
+
     vec4 diffuse = diffuseProduct * dot(L, N);
     vec4 specular = specularProduct * pow(max(dot(V, R), 0.0), shininess);
     vec4 ambient = ambientProduct;
+
+    vec3 lightDir = normalize(vec3(0.0, 0.0, 0.0));
+
+    if(dot(L, -lightDir) > 0.94 )
+    {
+	diffuse = Kd*diffuseProduct;
+	specular = Ks * specularProduct;
+    }
 
     gl_Position = projectionMatrix * modelMatrix * viewMatrix * vPosition;
 
