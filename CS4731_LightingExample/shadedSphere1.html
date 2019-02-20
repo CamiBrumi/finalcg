@@ -11,8 +11,11 @@ attribute vec4 vNormal;
 uniform vec4 vColor;
 uniform vec4 diffuseProduct, specularProduct, ambientProduct;
 uniform vec4 lightPosition;
-uniform mat4 modelViewMatrix;
+
+uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
+uniform mat4 modelMatrix;
+
 varying vec4 fColor;
 uniform float shininess;
 
@@ -21,7 +24,7 @@ void main()
 {
     //Convert the vertex position to eye coordinates
     // see the slides on specular lightning! to see what means the L (l) vector
-    vec3 pos = (modelViewMatrix * vPosition).xyz;
+    vec3 pos = (modelMatrix * viewMatrix * vPosition).xyz;
 
     //Calculate L
     vec3 L = normalize(lightPosition.xyz - pos);
@@ -30,7 +33,7 @@ void main()
     vec3 V = normalize(-pos); // vector that points to the camera from the vertex of the object. .
 
     //Convert vertex normal to eye coordinates
-    vec3 N = normalize(modelViewMatrix * vNormal).xyz;
+    vec3 N = normalize(modelMatrix * viewMatrix * vNormal).xyz;
 
     //Calculate reflection vector
     vec3 R = (2.0 * dot(L, N) * N) - L;
@@ -39,7 +42,7 @@ void main()
     vec4 specular = specularProduct * pow(max(dot(V, R), 0.0), shininess);
     vec4 ambient = ambientProduct;
 
-    gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+    gl_Position = projectionMatrix * modelMatrix * viewMatrix * vPosition;
 
 	fColor = vColor * (ambient + diffuse + specular);
 	fColor.a = 1.0;

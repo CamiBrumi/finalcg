@@ -72,6 +72,9 @@ function main()
 
     var viewMatrix = gl.getUniformLocation(gl.getParameter(gl.CURRENT_PROGRAM), "viewMatrix");
     gl.uniformMatrix4fv(viewMatrix,false, flatten(lookAt(eye, at, up)));
+    pMatrix = perspective(fovy, aspect, .1, 1000);
+    gl.uniformMatrix4fv( projection, false, flatten(pMatrix) );
+
 
 
 
@@ -126,8 +129,8 @@ function render()
     var greenCube = cube("g");
     //var magentaCube = cube();
 
-    pMatrix = perspective(fovy, aspect, .1, 1000);
-    gl.uniformMatrix4fv( projection, false, flatten(pMatrix) );
+    /*pMatrix = perspective(fovy, aspect, .1, 1000);
+    gl.uniformMatrix4fv( projection, false, flatten(pMatrix) );*/
 
     theta += 1;
 

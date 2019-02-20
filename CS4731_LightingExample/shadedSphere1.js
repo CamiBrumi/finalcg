@@ -50,14 +50,14 @@ var materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0 );
 var materialSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 var materialShininess = 20.0;
 
-var modelViewMatrix, projectionMatrix;
-var modelViewMatrixLoc, projectionMatrixLoc;
+var modelMatrix, viewMatrix, projectionMatrix;
+var modelMatrixLoc, viewMatrixLoc, projectionMatrixLoc;
 
-var eye = vec3(0, 0, 2);
+var eye = vec3(0, 0, 10);
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
-var fovy = 150.0;
+var fovy = 50.0;
 
 var map = new Map();
 //var normals = [];
@@ -255,26 +255,29 @@ window.onload = function init() {
     //draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
+    modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
+    viewMatrix = gl.getUniformLocation(gl.getParameter(gl.CURRENT_PROGRAM), "viewMatrix");
 
-    modelViewMatrix = lookAt(eye, at , up);
-    stack.push(modelViewMatrix);
+    gl.uniformMatrix4fv(viewMatrix,false, flatten(lookAt(eye, at, up)));
     projectionMatrix = perspective(fovy, canvas.width/canvas.height, .1, 1000);
+    gl.uniformMatrix4fv( projectionMatrixLoc, false, flatten(projectionMatrix) );
 
-    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
-    gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
+
+    //modelMatrix = lookAt(eye, at , up);
+    modelMatrix = translate(0, 2, 0);
+    stack.push(modelMatrix);
 
     pointsArray = cube();
-    modelViewMatrix = mult(modelViewMatrix, translate(2.0, 0.0, 0.0));
-    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
+    modelMatrix = mult(modelMatrix, translate(2.0, 0.0, 0.0));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
     render(true);
 
     tetrahedron(va, vb, vc, vd, numTimesToSubdivide);
-    modelViewMatrix = stack.pop();
-    stack.push(modelViewMatrix);
-    modelViewMatrix = mult(modelViewMatrix, translate(-2.0, 0.0, 0.0));
-    gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );
+    modelMatrix = stack.pop();
+    stack.push(modelMatrix);
+    modelMatrix = mult(modelMatrix, translate(-2.0, 0.0, 0.0));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
     render(false);
 
 
