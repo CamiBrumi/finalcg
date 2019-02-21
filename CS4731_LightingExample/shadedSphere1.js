@@ -18,7 +18,7 @@
 
 
 // flat shading
-var theta = 0;
+var theta = 2.25;
 var canvas;
 var gl;
 var program;
@@ -65,11 +65,11 @@ var materialShininess = 20.0;
 var modelMatrix, viewMatrix, projectionMatrix;
 var modelMatrixLoc, viewMatrixLoc, projectionMatrixLoc;
 
-var eye = vec3(0, 0, 10);
+var eye = vec3(0, 0, 20);
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
-var fovy = 90.0;
+var fovy = 60.0;
 
 var map = new Map();
 var orderVertices = [];
@@ -280,13 +280,13 @@ window.onload = function init() {
     viewMatrix = gl.getUniformLocation(gl.getParameter(gl.CURRENT_PROGRAM), "viewMatrix");
 
     gl.uniformMatrix4fv(viewMatrix,false, flatten(lookAt(eye, at, up)));
-    projectionMatrix = perspective(fovy, canvas.width/canvas.height, .1, 1000);
+    projectionMatrix = perspective(fovy, 1, .1, 100);
     gl.uniformMatrix4fv( projectionMatrixLoc, false, flatten(projectionMatrix) );
 
 
     //modelMatrix = lookAt(eye, at , up);
-    modelMatrix = translate(0, 2, 0);
-    stack.push(modelMatrix);
+    //modelMatrix = translate(0, 2, 0);
+    //stack.push(modelMatrix);
 
     // we compute the points and the normals in model coordinates.
     cube();
@@ -317,6 +317,35 @@ window.onload = function init() {
         }
     }
 
+    /*//modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(5.0, -1.0, 0.0))) );
+    draw(true, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, cubeNormals);
+
+    //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(8.0, -6.0, 0.0))) );
+    draw(true, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, cubeNormals);
+
+    //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(2.0, -6.0, 0.0))) );
+    draw(true, vec4(0.0, 0.0, 1.0, 1.0), cubePoints, cubeNormals);
+
+    // SPHERES
+    //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(0.0, 4.0, 0.0))) );
+    draw(false, vec4(1.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals);
+
+    //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-5.0, -1.0, 0.0))) );
+    draw(false, vec4(0.3, 0.3, 1.0, 1.0), spherePoints, sphereNormals);
+
+    //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-8.0, -6.0, 0.0))) );
+    draw(false, vec4(1.0, 0.0, 1.0, 1.0), spherePoints, sphereNormals);
+
+    //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-2.0, -6.0, 0.0))) );
+    draw(false, vec4(0.5, 0.5, 0.5, 1.0), spherePoints, sphereNormals);*/
+
     render();
 
 
@@ -331,27 +360,63 @@ function render() {
     } else if (shadeType.flat) {
         normalsToUse = cubeNormalsFlat;
     }
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(5.0, -1.0, 0.0))) );
-    draw(true, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, normalsToUse);
 
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(8.0, -6.0, 0.0))) );
-    draw(true, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, normalsToUse);
+    theta += 1;
+    modelMatrix = translate(0, 2, 0);
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
+    //draw(true, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, cubeNormals);
 
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(2.0, -6.0, 0.0))) );
-    draw(true, vec4(0.0, 0.0, 1.0, 1.0), cubePoints, normalsToUse);
+    stack = [];
 
-    // SPHERES
+    //console.log(stack.length);
+
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(0.0, 4.0, 0.0))) );
     draw(false, vec4(1.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals);
+    stack.push(modelMatrix);
+    modelMatrix = mult(rotateY(-theta), modelMatrix);
 
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-5.0, -1.0, 0.0))) );
-    draw(false, vec4(0.3, 0.3, 1.0, 1.0), spherePoints, sphereNormals);
+
+    //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(5.0, -1.0, 0.0))) );
+    draw(true, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, cubeNormals);
+
+    //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(mult(modelMatrix, translate(8.0, -6.0, 0.0)), rotateX(theta))) );
+    draw(true, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, cubeNormals);
+
+    //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(2.0, -6.0, 0.0))) );
+    draw(true, vec4(0.0, 0.0, 1.0, 1.0), cubePoints, cubeNormals);
+
 
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-8.0, -6.0, 0.0))) );
     draw(false, vec4(1.0, 0.0, 1.0, 1.0), spherePoints, sphereNormals);
 
+    stack.push(modelMatrix);
+    modelMatrix = mult(rotateY(-theta), modelMatrix);
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-5.0, -1.0, 0.0))) );
+    draw(false, vec4(0.3, 0.3, 1.0, 1.0), spherePoints, sphereNormals);
+
+
+    //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-2.0, -6.0, 0.0))) );
     draw(false, vec4(0.5, 0.5, 0.5, 1.0), spherePoints, sphereNormals);
+
+
+
+    //gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
+    //draw(false, vec4(1.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals);
+
+    // SPHERES
+/*    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
+    draw(false, vec4(0.3, 0.3, 1.0, 1.0), spherePoints, sphereNormals);
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
+    draw(false, vec4(1.0, 0.0, 1.0, 1.0), spherePoints, sphereNormals);
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
+    draw(false, vec4(0.5, 0.5, 0.5, 1.0), spherePoints, sphereNormals);*/
 
 
 

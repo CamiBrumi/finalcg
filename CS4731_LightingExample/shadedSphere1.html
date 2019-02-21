@@ -22,9 +22,10 @@ uniform float shininess;
 
 void main()
 {
+    mat4 modelViewMat = viewMatrix * modelMatrix;
     //Convert the vertex position to eye coordinates
     // see the slides on specular lightning! to see what means the L (l) vector
-    vec3 pos = (modelMatrix * viewMatrix * vPosition).xyz;
+    vec3 pos = (modelViewMat * vPosition).xyz;
 
     //Calculate L
     vec3 L = normalize(lightPosition.xyz - pos);
@@ -33,7 +34,7 @@ void main()
     vec3 V = normalize(-pos); // vector that points to the camera from the vertex of the object. .
 
     //Convert vertex normal to eye coordinates
-    vec3 N = normalize(modelMatrix * viewMatrix * vNormal).xyz;
+    vec3 N = normalize(modelViewMat * vNormal).xyz;
 
     //Calculate reflection vector
     vec3 R = (2.0 * dot(L, N) * N) - L;
@@ -53,7 +54,7 @@ void main()
 	specular = Ks * specularProduct;
     }
 
-    gl_Position = projectionMatrix * modelMatrix * viewMatrix * vPosition;
+    gl_Position = projectionMatrix * modelViewMat * vPosition;
 
 	fColor = vColor * (ambient + diffuse + specular);
 	fColor.a = 1.0;
