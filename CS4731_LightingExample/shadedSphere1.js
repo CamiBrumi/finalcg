@@ -79,11 +79,44 @@ var stack = [];
 var cubePoints = [];
 var spherePoints = [];
 var cubeNormals = [];
-var cubeNormalsFlat = []
+var cubeNormalsFlat = [];
 var sphereNormals = [];
 
 var shadeType = {gourand:true, flat:false};
-var sportLight = 1;
+var spotLight = 1;
+
+var hangerNormals = [];
+
+function smallHanger() {
+    var hVerts = [
+        vec4( -3, -5,  0, 1.0 ),
+        vec4( -3, -2,  0, 1.0 ),
+        vec4(  0, -2,  0, 1.0 ),
+        vec4(  0,  0,  0, 1.0 ),
+        vec4(  0, -2,  0, 1.0 ),
+        vec4(  3, -2,  0, 1.0 ),
+        vec4(  3, -5,  0, 1.0 )
+    ];
+    return hVerts;
+}
+
+function bigHanger() {
+    var hVerts = [
+        vec4( -5, -1,  0, 1.0 ),
+        vec4( -5,  1,  0, 1.0 ),
+        vec4(  0,  1,  0, 1.0 ),
+        vec4(  0,  4,  0, 1.0 ),
+        vec4(  0,  1,  0, 1.0 ),
+        vec4(  5,  1,  0, 1.0 ),
+        vec4(  5, -1,  0, 1.0 )
+    ];
+
+    for (var i = 0; i < hVerts.length; i++) {
+        hangerNormals.push(vec4(0, 1, 0, 0));
+    }
+    return hVerts;
+
+}
 
 function cube() {
     pointsArray = [];
@@ -297,6 +330,8 @@ window.onload = function init() {
     spherePoints = pointsArray;
     sphereNormals = normalsArray;
 
+    //hangers();
+
     window.onkeypress = function (event) {
         var key = event.key;
         switch (key) {
@@ -349,7 +384,7 @@ window.onload = function init() {
     render();
 
 
-}
+};
 
 var id;
 function render() {
@@ -371,40 +406,46 @@ function render() {
     //console.log(stack.length);
 
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(0.0, 4.0, 0.0))) );
-    draw(false, vec4(1.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals); // top orange sphere
+    draw(false, false, vec4(1.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals); // top orange sphere
     stack.push(modelMatrix); // this is only the modelMatrix = translate(0, 2, 0); we want all the objects to do this
 
     modelMatrix = mult( modelMatrix, rotateY(-theta));
     stack.push(modelMatrix);
 
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
+    draw(false, true, vec4(0.0, 0.0, 0.0, 1.0), bigHanger(), hangerNormals); // big hanger
+
     //before doing any transformation on the red cube, it is in model coordinates and we can rotate the cube now
     var auxMat = mult(translate(5.0, -1.0, 0.0), rotateY(theta*10));
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxMat)) );
-    draw(true, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, normalsToUse); //red cube
+    draw(true, false, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, normalsToUse); //red cube
 
-    //modelMatrix = mult(modelMatrix, rotateY(-theta));
+    //stack.pop();
+    //modelMatrix = stack.pop();
+    //modelMatrix = mult( modelMatrix, rotateY(theta*10));
+    //smaller cube hanger
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(5, -1, 0))) );
+    draw(false, true, vec4(0.0, 0.0, 0.0, 1.0), smallHanger(), hangerNormals); //small hanger
+
     var auxMat2 = mult(translate(8.0, -6.0, 0.0), rotateY(theta*30));
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxMat2)));
-    draw(true, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, normalsToUse); // green cube
+    draw(true, false, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, normalsToUse); // green cube
 
     auxMat3 = mult(translate(2.0, -6.0, 0.0), rotateY(theta*30));
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxMat3)) );
-    draw(true, vec4(0.9, 0.9, 0.9, 1.0), cubePoints, normalsToUse); // orange cube
-
-
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-8.0, -6.0, 0.0))) );
-    draw(false, vec4(1.0, 1.0, 1.0, 1.0), spherePoints, sphereNormals); // red sphere
-
-    stack.push(modelMatrix);
-    //modelMatrix = mult(rotateY(-theta), modelMatrix);
+    draw(true, false, vec4(0.9, 0.9, 0.9, 1.0), cubePoints, normalsToUse); // orange cube
 
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-5.0, -1.0, 0.0))) );
-    draw(false, vec4(0.3, 0.3, 1.0, 1.0), spherePoints, sphereNormals); // purple sphere
+    draw(false, false, vec4(0.3, 0.3, 1.0, 1.0), spherePoints, sphereNormals); // purple sphere
 
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-8.0, -6.0, 0.0))) );
+    draw(false, false, vec4(1.0, 1.0, 1.0, 1.0), spherePoints, sphereNormals); // yellow sphere
+
+    stack.push(modelMatrix);
 
     //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-2.0, -6.0, 0.0))) );
-    draw(false, vec4(0.5, 0.5, 0.5, 1.0), spherePoints, sphereNormals); // brown sphere
+    draw(false, false, vec4(0.5, 0.5, 0.5, 1.0), spherePoints, sphereNormals); // brown sphere
 
 
     //gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
@@ -429,7 +470,7 @@ function render() {
 }
 
 
-function draw(isCube, color, points, normals) {
+function draw(isCube, isHanger, color, points, normals) {
 
 
     var vBuffer = gl.createBuffer();
@@ -456,6 +497,8 @@ function draw(isCube, color, points, normals) {
 
     if (isCube) {
         gl.drawArrays( gl.TRIANGLES, 0, 36 );
+    } else if (isHanger) {
+        gl.drawArrays( gl.LINE_STRIP, 0, 7);
     } else {
         for( var i=0; i<index; i+=3)
             gl.drawArrays( gl.TRIANGLES, i, 3 );
