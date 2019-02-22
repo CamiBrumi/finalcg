@@ -57,7 +57,7 @@ function main()
 
     aspect =  canvas.width/canvas.height;
     // Set clear color
-    gl.clearColor(1.0, 1.0, 1.0, 1.0);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
     // Clear <canvas> by clearing the color buffer
     gl.enable(gl.DEPTH_TEST);

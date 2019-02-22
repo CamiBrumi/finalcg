@@ -44,18 +44,18 @@ var vb = vec4(0.0, 0.942809, 0.333333, 1);
 var vc = vec4(-0.816497, -0.471405, 0.333333, 1);
 var vd = vec4(0.816497, -0.471405, 0.333333,1);
 
-/*var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
+var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
 var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
 var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
-var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );*/
-var a = 1;
+var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+/*var a = 1;
 var b = 1;
 var c = 1;
 var lightCoord = vec4(a, b, c, 1.0);
 var lightPosition = lightCoord;
 var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
 var lightDiffuse = lightCoord;
-var lightSpecular = lightCoord;
+var lightSpecular = lightCoord;*/
 
 var materialAmbient = vec4( 1.0, 0.0, 1.0, 1.0 );
 var materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0 );
@@ -86,6 +86,8 @@ var shadeType = {gourand:true, flat:false};
 var spotLight = 1;
 
 var hangerNormals = [];
+
+var spotRad = 0.9;
 
 function smallHanger() {
     var hVerts = [
@@ -275,9 +277,15 @@ window.onload = function init() {
     gl = WebGLUtils.setupWebGL( canvas );
     if ( !gl ) { alert( "WebGL isn't available" ); }
 
+
     gl.viewport( 0, 0, canvas.width, canvas.height );
-    gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
+
+
     gl.enable(gl.DEPTH_TEST);
+    gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+
     //gl.enable(gl.CULL_FACE);
     //gl.cullFace(gl.FRONT);
 
@@ -306,7 +314,7 @@ window.onload = function init() {
         "shininess"), materialShininess);
 
     //draw(redCube, vec4(1.0, 0.0, 0.0, 1.0));
-    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
 
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
     modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
@@ -336,8 +344,10 @@ window.onload = function init() {
         var key = event.key;
         switch (key) {
             case 'p':
+                spotRad += 0.002;
                 break;
             case 'P':
+                spotRad -= 0.002;
                 break;
             case 'm': // gourand
                 console.log("gourand");
@@ -350,7 +360,7 @@ window.onload = function init() {
                 shadeType.flat = true;
                 break;
         }
-    }
+    };
 
     /*//modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(5.0, -1.0, 0.0))) );
@@ -388,6 +398,7 @@ window.onload = function init() {
 
 var id;
 function render() {
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     // CUBES
     var normalsToUse = [];
     if (shadeType.gourand) {
@@ -413,7 +424,7 @@ function render() {
     stack.push(modelMatrix);
 
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
-    draw(false, true, vec4(0.0, 0.0, 0.0, 1.0), bigHanger(), hangerNormals); // big hanger
+    draw(false, true, vec4(1.0, 1.0, 1.0, 1.0), bigHanger(), hangerNormals); // big hanger
 
     //before doing any transformation on the red cube, it is in model coordinates and we can rotate the cube now
     var auxMat = mult(translate(5.0, -1.0, 0.0), rotateY(theta*10));
@@ -424,17 +435,22 @@ function render() {
     //modelMatrix = stack.pop();
     //modelMatrix = mult( modelMatrix, rotateY(theta*10));
     //smaller cube hanger
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(5, -1, 0))) );
-    draw(false, true, vec4(0.0, 0.0, 0.0, 1.0), smallHanger(), hangerNormals); //small hanger cubes
+    var auxM1 = mult(translate(5, -1, 0), rotateY(theta*3));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxM1)) );
+    draw(false, true, vec4(1.0, 1.0, 1.0, 1.0), smallHanger(), hangerNormals); //small hanger cubes
 
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-5, -1, 0))) );
-    draw(false, true, vec4(0.0, 0.0, 0.0, 1.0), smallHanger(), hangerNormals); //small hanger spheres
+    var auxM2 = mult(translate(-5, -1, 0), rotateY(theta*3));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxM2)) );
+    draw(false, true, vec4(1.0, 1.0, 1.0, 1.0), smallHanger(), hangerNormals); //small hanger spheres
 
-    var auxMat2 = mult(translate(8.0, -6.0, 0.0), rotateY(theta*30));
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxMat2)));
+
+    var auxMat2 = mult(translate(8.0, -6.0, 0.0), rotateY(theta*30)); // HERE I NEED TO tdo stufffffffff offff
+    var auxM3 = mult(rotateY(theta*3), auxMat2); // translate the half of the width of the hanger, then rotate y theta*3, then translate to the screen position and then rotate as the whole thingy moves
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxM3)));
     draw(true, false, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, normalsToUse); // green cube
 
-    auxMat3 = mult(translate(2.0, -6.0, 0.0), rotateY(theta*30));
+    var auxMat3 = mult(translate(2.0, -6.0, 0.0), rotateY(theta*30));
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxMat3)) );
     draw(true, false, vec4(0.9, 0.9, 0.9, 1.0), cubePoints, normalsToUse); // orange cube
 
@@ -494,6 +510,8 @@ function draw(isCube, isHanger, color, points, normals) {
 
     var colorLoc = gl.getUniformLocation(program, "vColor");
     gl.uniform4fv(colorLoc, flatten(color));
+
+    gl.uniform1f(gl.getUniformLocation(program, "spot"), spotRad);
 
     /*for( var i=0; i<index; i+=3)
         gl.drawArrays( gl.TRIANGLES, i, 3 );*/
