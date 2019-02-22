@@ -361,7 +361,7 @@ function render() {
         normalsToUse = cubeNormalsFlat;
     }
 
-    theta += 1;
+    theta += 0.2;
     modelMatrix = translate(0, 2, 0);
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
     //draw(true, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, cubeNormals);
@@ -378,15 +378,15 @@ function render() {
 
     //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(5.0, -1.0, 0.0))) );
-    draw(true, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, cubeNormals);
+    draw(true, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, normalsToUse);
 
     //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(mult(modelMatrix, translate(8.0, -6.0, 0.0)), rotateX(theta))) );
-    draw(true, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, cubeNormals);
+    draw(true, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, normalsToUse);
 
     //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(2.0, -6.0, 0.0))) );
-    draw(true, vec4(0.0, 0.0, 1.0, 1.0), cubePoints, cubeNormals);
+    draw(true, vec4(0.0, 0.0, 1.0, 1.0), cubePoints, normalsToUse);
 
 
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-8.0, -6.0, 0.0))) );
