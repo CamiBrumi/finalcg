@@ -425,7 +425,10 @@ function render() {
     //modelMatrix = mult( modelMatrix, rotateY(theta*10));
     //smaller cube hanger
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(5, -1, 0))) );
-    draw(false, true, vec4(0.0, 0.0, 0.0, 1.0), smallHanger(), hangerNormals); //small hanger
+    draw(false, true, vec4(0.0, 0.0, 0.0, 1.0), smallHanger(), hangerNormals); //small hanger cubes
+
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-5, -1, 0))) );
+    draw(false, true, vec4(0.0, 0.0, 0.0, 1.0), smallHanger(), hangerNormals); //small hanger spheres
 
     var auxMat2 = mult(translate(8.0, -6.0, 0.0), rotateY(theta*30));
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxMat2)));
