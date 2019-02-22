@@ -371,38 +371,40 @@ function render() {
     //console.log(stack.length);
 
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(0.0, 4.0, 0.0))) );
-    draw(false, vec4(1.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals);
+    draw(false, vec4(1.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals); // top orange sphere
+    stack.push(modelMatrix); // this is only the modelMatrix = translate(0, 2, 0); we want all the objects to do this
+
+    modelMatrix = mult( modelMatrix, rotateY(-theta));
     stack.push(modelMatrix);
-    modelMatrix = mult(rotateY(-theta), modelMatrix);
 
+    //before doing any transformation on the red cube, it is in model coordinates and we can rotate the cube now
+    var auxMat = mult(translate(5.0, -1.0, 0.0), rotateY(theta*10));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxMat)) );
+    draw(true, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, normalsToUse); //red cube
 
-    //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(5.0, -1.0, 0.0))) );
-    draw(true, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, normalsToUse);
+    //modelMatrix = mult(modelMatrix, rotateY(-theta));
+    var auxMat2 = mult(translate(8.0, -6.0, 0.0), rotateY(theta*30));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxMat2)));
+    draw(true, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, normalsToUse); // green cube
 
-    //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(mult(modelMatrix, translate(8.0, -6.0, 0.0)), rotateX(theta))) );
-    draw(true, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, normalsToUse);
-
-    //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(2.0, -6.0, 0.0))) );
-    draw(true, vec4(0.0, 0.0, 1.0, 1.0), cubePoints, normalsToUse);
+    auxMat3 = mult(translate(2.0, -6.0, 0.0), rotateY(theta*30));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxMat3)) );
+    draw(true, vec4(0.9, 0.9, 0.9, 1.0), cubePoints, normalsToUse); // orange cube
 
 
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-8.0, -6.0, 0.0))) );
-    draw(false, vec4(1.0, 0.0, 1.0, 1.0), spherePoints, sphereNormals);
+    draw(false, vec4(1.0, 1.0, 1.0, 1.0), spherePoints, sphereNormals); // red sphere
 
     stack.push(modelMatrix);
-    modelMatrix = mult(rotateY(-theta), modelMatrix);
+    //modelMatrix = mult(rotateY(-theta), modelMatrix);
 
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-5.0, -1.0, 0.0))) );
-    draw(false, vec4(0.3, 0.3, 1.0, 1.0), spherePoints, sphereNormals);
+    draw(false, vec4(0.3, 0.3, 1.0, 1.0), spherePoints, sphereNormals); // purple sphere
 
 
     //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-2.0, -6.0, 0.0))) );
-    draw(false, vec4(0.5, 0.5, 0.5, 1.0), spherePoints, sphereNormals);
-
+    draw(false, vec4(0.5, 0.5, 0.5, 1.0), spherePoints, sphereNormals); // brown sphere
 
 
     //gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
