@@ -88,6 +88,8 @@ var spotLight = 1;
 var hangerNormals = [];
 
 var spotRad = 0.9;
+var spotXPos = 0;
+var spotYPos = 0;
 
 function smallHanger() {
     var hVerts = [
@@ -285,7 +287,7 @@ window.onload = function init() {
     gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-
+    //gl.enable(gl.CULL_FACE);
     //gl.enable(gl.CULL_FACE);
     //gl.cullFace(gl.FRONT);
 
@@ -344,10 +346,10 @@ window.onload = function init() {
         var key = event.key;
         switch (key) {
             case 'p':
-                spotRad += 0.002;
+                spotRad += 0.005;
                 break;
             case 'P':
-                spotRad -= 0.002;
+                spotRad -= 0.005;
                 break;
             case 'm': // gourand
                 console.log("gourand");
@@ -358,6 +360,18 @@ window.onload = function init() {
                 console.log("flat");
                 shadeType.gourand = false;
                 shadeType.flat = true;
+                break;
+            case 'd':
+                spotXPos += 0.1;
+                break;
+            case 'a':
+                spotXPos -= 0.1;
+                break;
+            case 'w':
+                spotYPos += 0.1;
+                break;
+            case 's':
+                spotYPos -= 0.1;
                 break;
         }
     };
@@ -428,7 +442,7 @@ function render() {
 
     //before doing any transformation on the red cube, it is in model coordinates and we can rotate the cube now
     modelMatrix = mult(modelMatrix, translate(5.0, -1.0, 0.0));
-    modelMatrix = mult(modelMatrix, rotateY(theta*3));
+    modelMatrix = mult(modelMatrix, rotateY(theta*7));
     stack.push(modelMatrix);
     //var auxMat1 = mult(translate(5.0, -1.0, 0.0), rotateY(theta*3));
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
@@ -546,6 +560,8 @@ function draw(isCube, isHanger, color, points, normals) {
     gl.uniform4fv(colorLoc, flatten(color));
 
     gl.uniform1f(gl.getUniformLocation(program, "spot"), spotRad);
+    gl.uniform1f(gl.getUniformLocation(program, "spotXPos"), spotXPos);
+    gl.uniform1f(gl.getUniformLocation(program, "spotYPos"), spotYPos);
 
     /*for( var i=0; i<index; i+=3)
         gl.drawArrays( gl.TRIANGLES, i, 3 );*/
