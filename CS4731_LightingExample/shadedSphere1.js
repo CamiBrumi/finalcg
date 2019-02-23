@@ -420,50 +420,84 @@ function render() {
     draw(false, false, vec4(1.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals); // top orange sphere
     stack.push(modelMatrix); // this is only the modelMatrix = translate(0, 2, 0); we want all the objects to do this
 
-    modelMatrix = mult( modelMatrix, rotateY(-theta));
+    modelMatrix = mult( modelMatrix, rotateY(-theta)); // rotation of the bigger hanger
     stack.push(modelMatrix);
 
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
     draw(false, true, vec4(1.0, 1.0, 1.0, 1.0), bigHanger(), hangerNormals); // big hanger
 
     //before doing any transformation on the red cube, it is in model coordinates and we can rotate the cube now
-    var auxMat = mult(translate(5.0, -1.0, 0.0), rotateY(theta*10));
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxMat)) );
+    modelMatrix = mult(modelMatrix, translate(5.0, -1.0, 0.0));
+    modelMatrix = mult(modelMatrix, rotateY(theta*3));
+    stack.push(modelMatrix);
+    //var auxMat1 = mult(translate(5.0, -1.0, 0.0), rotateY(theta*3));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
     draw(true, false, vec4(1.0, 0.0, 0.0, 1.0), cubePoints, normalsToUse); //red cube
 
     //stack.pop();
     //modelMatrix = stack.pop();
     //modelMatrix = mult( modelMatrix, rotateY(theta*10));
     //smaller cube hanger
-    var auxM1 = mult(translate(5, -1, 0), rotateY(theta*3));
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxM1)) );
+    //var auxMat2 = mult(translate(5, -1, 0), rotateY(theta*3));
+
+    //modelMatrix = mult(modelMatrix, translate(0, -2, 0));
+    modelMatrix = mult(modelMatrix, rotateY(theta*3));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
     draw(false, true, vec4(1.0, 1.0, 1.0, 1.0), smallHanger(), hangerNormals); //small hanger cubes
-
-    var auxM2 = mult(translate(-5, -1, 0), rotateY(theta*3));
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxM2)) );
-    draw(false, true, vec4(1.0, 1.0, 1.0, 1.0), smallHanger(), hangerNormals); //small hanger spheres
-
-
-    var auxMat2 = mult(translate(8.0, -6.0, 0.0), rotateY(theta*30)); // HERE I NEED TO tdo stufffffffff offff
-    var auxM3 = mult(rotateY(theta*3), auxMat2); // translate the half of the width of the hanger, then rotate y theta*3, then translate to the screen position and then rotate as the whole thingy moves
-
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxM3)));
-    draw(true, false, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, normalsToUse); // green cube
-
-    var auxMat3 = mult(translate(2.0, -6.0, 0.0), rotateY(theta*30));
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, auxMat3)) );
-    draw(true, false, vec4(0.9, 0.9, 0.9, 1.0), cubePoints, normalsToUse); // orange cube
-
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-5.0, -1.0, 0.0))) );
-    draw(false, false, vec4(0.3, 0.3, 1.0, 1.0), spherePoints, sphereNormals); // purple sphere
-
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-8.0, -6.0, 0.0))) );
-    draw(false, false, vec4(1.0, 1.0, 1.0, 1.0), spherePoints, sphereNormals); // yellow sphere
-
     stack.push(modelMatrix);
 
+    //----------ASHISH VERSION 1---------------
+    //var auxMat4 = mult(translate(8, -6, 0), rotateY(-theta*30));
+     // HERE I NEED TO tdo stufffffffff ooooof
+
+    //---------------------------------------
+    //-------------ASHISH VERSION 2---------------
+    var auxMat4 = modelMatrix;
+    auxMat4 = mult( auxMat4, translate(5,-1, 0));
+    auxMat4 = mult( auxMat4, rotateY(theta*3));
+    auxMat4 = mult( translate(3, -5, 0), auxMat4);
+    //--------------------------------------------
+
+    // HERE I NEED TO do stufffffffff ooooof
+
+
+
+    //rotate around own axis and then translate the half of the width of the hanger
+    //var auxMat4 = mult(translate(1.25, 0.0, 0.0), rotateY(theta*30));
+    //var auxMat5 = mult(rotateY(theta*3), auxMat4);
+    //var auxMat6 = mult(translate(3.75, -6, 0), auxMat5);
+    modelMatrix = mult(modelMatrix, translate(3, -5, 0));
+    modelMatrix = mult(modelMatrix, rotateY(theta*30));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix));
+    draw(true, false, vec4(0.0, 1.0, 0.0, 1.0), cubePoints, normalsToUse); // green cube
+    modelMatrix = stack.pop();
+    modelMatrix = mult(modelMatrix, translate(-3.0, -5.0, 0.0));
+    modelMatrix = mult(modelMatrix, rotateY(theta*30));
+    //var auxMat6 = mult(translate(2.0, -6.0, 0.0), rotateY(theta*30));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
+    draw(true, false, vec4(0.9, 0.9, 0.9, 1.0), cubePoints, normalsToUse); // orange cube
+
+    stack.pop();
+    modelMatrix = stack.pop();
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-5.0, -1.0, 0.0))) );
+    draw(false, false, vec4(0.3, 0.3, 1.0, 1.0), spherePoints, sphereNormals); // purple sphere
+    stack.push(modelMatrix);
+    //var auxMat3 = mult(translate(-5, -1, 0), rotateY(theta*3));
+
+    modelMatrix = mult(modelMatrix, translate(-5, -1, 0));
+    modelMatrix = mult(modelMatrix, rotateY(theta*3));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
+    draw(false, true, vec4(1.0, 1.0, 1.0, 1.0), smallHanger(), hangerNormals); //small hanger spheres
+    stack.push(modelMatrix);
+
+    modelMatrix = mult(modelMatrix, translate(-3.0, -5.0, 0.0));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
+    draw(false, false, vec4(1.0, 1.0, 1.0, 1.0), spherePoints, sphereNormals); // yellow sphere
+
+    modelMatrix = stack.pop(modelMatrix);
+    modelMatrix = mult(modelMatrix, translate(3.0, -5.0, 0.0));
     //modelMatrixLoc = gl.getUniformLocation( program, "modelMatrix" );
-    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(-2.0, -6.0, 0.0))) );
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix) );
     draw(false, false, vec4(0.5, 0.5, 0.5, 1.0), spherePoints, sphereNormals); // brown sphere
 
 
