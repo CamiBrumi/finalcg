@@ -214,6 +214,7 @@ function tetrahedron(a, b, c, d, n) {
 // 'r' to increment the speed
 // 'e' to decrement the speed
 
+// main function
 window.onload = function init() {
 
     canvas = document.getElementById("gl-canvas");
@@ -276,10 +277,10 @@ window.onload = function init() {
         var key = event.key;
         switch (key) {
             case 'p':
-                spotRad += 0.005;
+                spotRad -= 0.005;
                 break;
             case 'P':
-                spotRad -= 0.005;
+                spotRad += 0.005;
                 break;
             case 'm': // gourand
                 console.log("gourand");
