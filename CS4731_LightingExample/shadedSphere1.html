@@ -23,6 +23,8 @@ uniform float spot;
 uniform float spotXPos;
 uniform float spotYPos;
 
+varying vec3 refl;
+
 
 void main()
 {
@@ -42,6 +44,9 @@ void main()
 
     //Calculate reflection vector
     vec3 R = (2.0 * dot(L, N) * N) - L;
+
+    refl = reflect(pos, N);
+    //refl = refract(pos, N, 0.5);
 
     float Kd = dot(L, N);
     float Ks = pow(max(dot(V, R), 0.0), shininess);
@@ -72,13 +77,15 @@ void main()
 precision mediump float;
 
 varying vec4 fColor;
+varying vec3 refl;
+
+uniform samplerCube texMap;
 
 void
 main()
 {
-
-    gl_FragColor = fColor;
-
+    vec4 texColor = textureCube(texMap, refl);
+    gl_FragColor = fColor*texColor;
 }
 </script>
 

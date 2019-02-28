@@ -48,11 +48,73 @@ var normalsArray = [];
 
 var shadeType = {gourand: true, flat: false};
 
-
-
 var spotRad = 0.9;
 var spotXPos = 0;
 var spotYPos = 0;
+
+var red = new Uint8Array([255, 0, 0, 255]);
+var blue = new Uint8Array([0, 0, 255, 255]);
+var green = new Uint8Array([0, 255, 0, 255]);
+var cyan = new Uint8Array([0, 255, 255, 255]);
+var magenta = new Uint8Array([255, 0, 255, 255]);
+var yellow = new Uint8Array([255, 255, 0, 255]);
+
+var cubeMap;
+var imagesLoaded;
+
+var imageXp = new Image();
+var imageYp = new Image();
+var imageZp = new Image();
+var imageXn = new Image();
+var imageYn = new Image();
+var imageZn = new Image();
+
+function configureCubeMap() {
+    cubeMap = gl.createTexture();
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap);
+
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, red);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, blue);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, yellow);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, cyan);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, magenta);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, green);
+
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
+
+}
+
+
+function configureCubeMapImage(xp, yp, zp, xn, yn, zn) {
+    cubeMap = gl.createTexture();
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap);
+
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, xp);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, yp);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, zp);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, xn);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, yn);
+    gl.texImage2D(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, zn);
+
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 1);
+
+}
 
 // This function returns the points that make the smaller hanger
 function smallHanger() {
@@ -313,6 +375,35 @@ window.onload = function init() {
         }
     };
 
+    configureCubeMap();
+
+
+
+    imageXp.crossOrigin = "";
+    imageXp.src = "https://web.cs.wpi.edu/~jmcuneo/a.jpg";
+
+    imageYp.crossOrigin = "";
+    imageYp.src = "https://web.cs.wpi.edu/~jmcuneo/a.jpg";
+
+    imageZp.crossOrigin = "";
+    imageZp.src = "https://web.cs.wpi.edu/~jmcuneo/a.jpg";
+
+    imageXn.crossOrigin = "";
+    imageXn.src = "https://web.cs.wpi.edu/~jmcuneo/a.jpg";
+
+    imageYn.crossOrigin = "";
+    imageYn.src = "https://web.cs.wpi.edu/~jmcuneo/a.jpg";
+
+    imageZn.crossOrigin = "";
+    imageZn.src = "https://web.cs.wpi.edu/~jmcuneo/a.jpg";
+
+    imagesLoaded = 0;
+    imageXp.onload = function() {imagesLoaded++;};
+    imageYp.onload = function() {imagesLoaded++;};
+    imageZp.onload = function() {imagesLoaded++;};
+    imageXn.onload = function() {imagesLoaded++;};
+    imageYn.onload = function() {imagesLoaded++;};
+    imageZn.onload = function() {imagesLoaded++;};
     render();
 };
 
@@ -322,6 +413,9 @@ var id;
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    if (imagesLoaded === 6) {
+        configureCubeMapImage(imageXp, imageYp, imageZp, imageXn, imageYn, imageZn);
+    }
     // depending on what shading we want, we choose an array of normals or the other.
     var normalsToUse = [];
     if (shadeType.gourand) {
