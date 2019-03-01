@@ -24,6 +24,10 @@ uniform float spotXPos;
 uniform float spotYPos;
 
 varying vec3 refl;
+varying vec3 refr;
+
+attribute  vec2 vTexCoord;
+varying vec2 fTexCoord;
 
 
 void main()
@@ -46,7 +50,7 @@ void main()
     vec3 R = (2.0 * dot(L, N) * N) - L;
 
     refl = reflect(pos, N);
-    //refl = refract(pos, N, 0.5);
+    refr = refract(pos, N, 0.5);
 
     float Kd = dot(L, N);
     float Ks = pow(max(dot(V, R), 0.0), shininess);
@@ -67,6 +71,7 @@ void main()
 
     gl_Position = projectionMatrix * modelViewMat * vPosition;
 
+    fTexCoord = vTexCoord;
 	fColor = (ambient + diffuse + specular) * vColor;
 	fColor.a = 1.0;
 }
@@ -78,18 +83,39 @@ precision mediump float;
 
 varying vec4 fColor;
 varying vec3 refl;
+varying vec3 refr;
+uniform bool isRefl;
+uniform bool isRefr;
 
 uniform samplerCube texMap;
-uniform float dontWantTexture;
+uniform bool wantTexture;
+
+
+//varying vec2 fTexCoord;
+//uniform sampler2D texture;
+
+//uniform bool wallTexturing;
+
 
 void
 main()
 {
-    if (dontWantTexture > 0.0) { // one with the walls, -1 with the other stuff
-        gl_FragColor = fColor;
+     if (wantTexture) {
+        if (isRefl && isRefr) {
+            vec4 texColor1 = textureCube(texMap, refl);
+            vec4 texColor2 = textureCube(texMap, refr);
+            gl_FragColor = fColor*texColor1*texColor2;
+        } else if (isRefl) {
+            vec4 texColor = textureCube(texMap, refl);
+            gl_FragColor = fColor*texColor;
+        } else if (isRefr){
+            vec4 texColor = textureCube(texMap, refr);
+            gl_FragColor = fColor*texColor;
+        } else {
+            gl_FragColor = fColor;
+        }
     } else {
-        vec4 texColor = textureCube(texMap, refl);
-        gl_FragColor = fColor*texColor;
+        gl_FragColor = fColor;
     }
 
 }

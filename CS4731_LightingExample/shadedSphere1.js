@@ -69,7 +69,6 @@ var imageXn = new Image();
 var imageYn = new Image();
 var imageZn = new Image();
 var textureRendered = false;
-var dontWantTexture = 1;
 
 var floorPoints = [
     vec4( -10, -10,  -10, 1.0 ),
@@ -78,6 +77,8 @@ var floorPoints = [
     vec4( 10, -10,  -10, 1.0 )
 
 ];
+
+
 
 /*var floorPoints = [
     vec4( 0, -10,  -10, 1.0 ),
@@ -93,6 +94,100 @@ var floorNormals = [
     vec4(0.0, 1.0, 0.0, 0.0),
     vec4(0.0, 1.0, 0.0, 0.0)
 ];
+
+var isRefl = false;
+var isRefr = false;
+
+// for the walls texturing-------------
+var texture;
+
+var minT = 0.0;
+var maxT = 1.0;
+
+var texCoord = [
+    vec2(minT, minT),
+    vec2(minT, maxT),
+    vec2(maxT, maxT),
+    vec2(maxT, minT)
+];
+
+var texCoordsArray = texCoord;
+
+function createATexture()
+{
+    //
+    // Initialize a texture
+    //
+
+    var tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+
+    // Fill the texture with a 1x1 blue pixel.
+    //Specify the array of the two-dimensional texture elements
+    //target, level, iformat, format, type, image
+    //target - lets us choose a single image or set up a cube map
+    //level - mipmapping, where 0 denotes the highest resolution or that we are not using mipmapping
+    //iformat - how to store the texture in memory
+    //width
+    //height
+    //border - deprecated, so should always be 0
+    //format and type - how the pixels are stored, so that WebGL knows how to read those pixels in
+    //image - self-explanatory
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 2, 2, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+        new Uint8Array([0, 0, 255, 255, 255, 0, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255]));
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+}
+
+
+
+function configureTextureWalls( image ) {
+    //Create a texture object
+    texture = gl.createTexture();
+
+    //Bind it as the current two-dimensional texture
+    gl.bindTexture( gl.TEXTURE_2D, texture );
+
+    //Needed to flip the image from top to bottom due to the different
+    //coordinate systems used for the image and by our application
+    //gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+    //How do we interpret a value of s or t outside of the range (0.0, 1.0)?
+    //Generally, we want the texture either to repeat or to clamp the values to 0.0 or 1.0
+    //By executing these functions after the gl.bindTexture, the parameters become part of the texture object
+    //Other option for last parameter is gl.REPEAT, but that doesn't work here
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    //Specify the array of the two-dimensional texture elements
+    //target, level, iformat, format, type, image
+    //target - lets us choose a single image or set up a cube map
+    //level - mipmapping, where 0 denotes the highest resolution or that we are not using mipmapping
+    //iformat - how to store the texture in memory
+    //format and type - how the pixels are stored, so that WebGL knows how to read those pixels in
+    //image - self-explanatory
+    gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image );
+
+    //The size of the pixel that we are trying to color on the screen may be smaller or larger than one pixel
+    //magnification - the texel is larger than one pixel
+    //minification - the texture is smaller than one pixel
+    //NEAREST - use the value of the nearest point sampling
+    //LINEAR - linear filtering
+    //mip-mapping - create a series of texture arrays at reduced sizes; webgl requires row and column
+    //dimensions that are powers of two
+    //gl.NEAREST_MIPMAP_NEAREST
+    //use point sampling with the best mipmap, filtering with the best mipmap, point sampling using linear filtering
+    //between mipmaps, or both (NEAREST_MIPMAP_LINEAR, LINEAR_MIPMAP_NEAREST, LINEAR_MIPMAP_LINEAR)
+    //gl.generateMipmap( gl.TEXTURE_2D );
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST );
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
+
+    //Link the texture object we create in the application to the sampler in the fragment shader
+    gl.uniform1i(gl.getUniformLocation(program, "texture"), 0);
+}
+
+// ------------------------------------
 
 function configureCubeMap() {
     cubeMap = gl.createTexture();
@@ -199,6 +294,12 @@ function cube() {
 // auxiliar function of the cube() one, that adds the triangles in the desired order to create faces.
 function quad(a, b, c, d) //a, b, c , d are numbers (the position of the vertices that form a face in the vertices array)
 {
+    texCoordsArray.push(texCoord[0]);
+    texCoordsArray.push(texCoord[1]);
+    texCoordsArray.push(texCoord[2]);
+    texCoordsArray.push(texCoord[0]);
+    texCoordsArray.push(texCoord[2]);
+    texCoordsArray.push(texCoord[3]);
     var verts = [];
 
     var vertices = [
@@ -248,6 +349,10 @@ function triangle(a, b, c) {
     normalsArray.push(a[0], a[1], a[2], 0.0);
     normalsArray.push(b[0], b[1], b[2], 0.0);
     normalsArray.push(c[0], c[1], c[2], 0.0);
+
+    texCoordsArray.push(texCoord[0]);
+    texCoordsArray.push(texCoord[1]);
+    texCoordsArray.push(texCoord[2]);
 
     index += 3;
 
@@ -397,9 +502,16 @@ window.onload = function init() {
             case 'e':
                 THETA_INCREMENT -= 0.1;
                 break;
+            case 'c':
+                isRefl = !isRefl;
+                console.log(isRefl);
+                break;
+            case 'v':
+                isRefr = !isRefr;
+                console.log(isRefr);
+                break;
         }
     };
-
     configureCubeMap();
 
 
@@ -431,6 +543,18 @@ window.onload = function init() {
     imageZn.onload = function() {imagesLoaded++;};
     console.log(floorPoints.length);
     console.log(floorNormals.length);
+
+
+
+    var image = new Image();
+    image.crossOrigin = "";
+    //image.src = "http://web.cs.wpi.edu/~jmcuneo/grass.bmp";
+    image.src = "https://web.cs.wpi.edu/~jmcuneo/a.jpg";
+    //image.src = "SA2011_black.gif";
+    image.onload = function() {
+        configureTextureWalls( image );
+    };
+
     render();
 };
 
@@ -455,9 +579,23 @@ function drawWallsAndFloor() {
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer2);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(floorNormals), gl.STATIC_DRAW);
 
+
     var vNormal = gl.getAttribLocation(program, "vNormal");
     gl.vertexAttribPointer(vNormal, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vNormal);
+
+    var tBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoordsArray), gl.STATIC_DRAW );
+
+    var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
+    gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vTexCoord );
+
+    //console.log(floorPoints.length);
+    //console.log(floorNormals.length);
+    //console.log(texCoordsArray.length);
+    createATexture();
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
@@ -487,8 +625,9 @@ function render() {
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix));
 
     stack = [];
-    dontWantTexture = 1;
-    gl.uniform1f(gl.getUniformLocation(program, "dontWantTexture"), dontWantTexture);
+    var wallTexturing = true;
+    var wantTexture = false;
+    gl.uniform1f(gl.getUniformLocation(program, "wantTexture"), wantTexture);
 
 
     drawWallsAndFloor();
@@ -508,8 +647,8 @@ function render() {
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(0, 20, 0))));
     drawWallsAndFloor();
 
-    dontWantTexture = -1;
-    gl.uniform1f(gl.getUniformLocation(program, "dontWantTexture"), dontWantTexture);
+    wantTexture = true;
+    gl.uniform1f(gl.getUniformLocation(program, "wantTexture"), wantTexture);
     // top orange sphere
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(0.0, 4.0, 0.0))));
     draw(false, false, vec4(1.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals);
@@ -608,6 +747,10 @@ function draw(isCube, isHanger, color, points, normals) {
     gl.uniform1f(gl.getUniformLocation(program, "spot"), spotRad);
     gl.uniform1f(gl.getUniformLocation(program, "spotXPos"), spotXPos);
     gl.uniform1f(gl.getUniformLocation(program, "spotYPos"), spotYPos);
+    gl.uniform1f(gl.getUniformLocation(program, "isRefl"), isRefl);
+    gl.uniform1f(gl.getUniformLocation(program, "isRefr"), isRefr);
+
+
 
 
     if (isCube) {
