@@ -69,6 +69,7 @@ var imageXn = new Image();
 var imageYn = new Image();
 var imageZn = new Image();
 var textureRendered = false;
+var dontWantTexture = 1;
 
 var floorPoints = [
     vec4( -10, -10,  -10, 1.0 ),
@@ -113,7 +114,6 @@ function configureCubeMap() {
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 
     gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
-    //isTextureWalls = false;
 
 }
 
@@ -487,6 +487,9 @@ function render() {
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix));
 
     stack = [];
+    dontWantTexture = 1;
+    gl.uniform1f(gl.getUniformLocation(program, "dontWantTexture"), spotRad);
+
 
     drawWallsAndFloor();
     var translateWall1 = mult(translate(-0.5, 0, 0), rotateZ(90));

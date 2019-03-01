@@ -80,10 +80,12 @@ varying vec4 fColor;
 varying vec3 refl;
 
 uniform samplerCube texMap;
+uniform float dontWantTexture;
 
 void
 main()
 {
+    if (dontWantTexture > 0) {} // one with the walls, -1 with the other stuff
     vec4 texColor = textureCube(texMap, refl);
     gl_FragColor = fColor*texColor;
 }
