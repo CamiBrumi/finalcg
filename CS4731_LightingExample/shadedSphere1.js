@@ -71,11 +71,20 @@ var imageZn = new Image();
 var textureRendered = false;
 
 var floorPoints = [
-    vec4( -50, -5,  -50, 1.0 ),
-    vec4( -50,  -5,  50, 1.0 ),
-    vec4( 50, -5,  -50, 1.0 ),
-    vec4( 50,  -5,  50, 1.0 )
+    vec4( -10, -10,  -10, 1.0 ),
+    vec4( -10,  -10,  10, 1.0 ),
+    vec4( 10,  -10,  10, 1.0 ),
+    vec4( 10, -10,  -10, 1.0 )
+
 ];
+
+/*var floorPoints = [
+    vec4( 0, -10,  -10, 1.0 ),
+    vec4( -10,  -10,  10, 1.0 ),
+    vec4( 0,  -10,  10, 1.0 ),
+    vec4( 10, -10,  -10, 1.0 )
+
+];*/
 
 var floorNormals = [
     vec4(0.0, 1.0, 0.0, 0.0),
@@ -104,7 +113,7 @@ function configureCubeMap() {
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 
     gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
-    isTextureWalls = false;
+    //isTextureWalls = false;
 
 }
 
@@ -429,7 +438,7 @@ function drawWallsAndFloor() {
 
 
 
-    var grey = vec4(0, 0, 1, 1.0);
+    var grey = vec4(0.9, 0.9, 0.9, 1.0);
 
     var vBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
@@ -451,8 +460,9 @@ function drawWallsAndFloor() {
     gl.enableVertexAttribArray(vNormal);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-}
 
+
+}
 
 var id;
 
@@ -476,8 +486,24 @@ function render() {
     modelMatrix = translate(0, 2, 0);
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix));
 
-
     stack = [];
+
+    drawWallsAndFloor();
+    var translateWall1 = mult(translate(-0.5, 0, 0), rotateZ(90));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translateWall1)));
+    drawWallsAndFloor();
+
+    var translateWall2 = mult(translate(-20, 0, 0), rotateZ(90));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translateWall2)));
+    drawWallsAndFloor();
+
+    //var translateWall3 = mult(translate(-20, 0, 0), rotateX(90));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, rotateX(90))));
+    drawWallsAndFloor();
+
+    //var translateWall3 = mult(translate(-20, 0, 0), rotateX(90));
+    gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(0, 20, 0))));
+    drawWallsAndFloor();
 
     // top orange sphere
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(0.0, 4.0, 0.0))));
@@ -546,7 +572,7 @@ function render() {
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix));
     draw(false, false, vec4(0.5, 0.5, 0.5, 1.0), spherePoints, sphereNormals);
 
-    drawWallsAndFloor();
+    //drawWallsAndFloor();
 
     id = requestAnimationFrame(render);
 }
