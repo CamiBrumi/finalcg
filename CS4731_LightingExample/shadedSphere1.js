@@ -488,7 +488,7 @@ function render() {
 
     stack = [];
     dontWantTexture = 1;
-    gl.uniform1f(gl.getUniformLocation(program, "dontWantTexture"), spotRad);
+    gl.uniform1f(gl.getUniformLocation(program, "dontWantTexture"), dontWantTexture);
 
 
     drawWallsAndFloor();
@@ -508,6 +508,8 @@ function render() {
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(0, 20, 0))));
     drawWallsAndFloor();
 
+    dontWantTexture = -1;
+    gl.uniform1f(gl.getUniformLocation(program, "dontWantTexture"), dontWantTexture);
     // top orange sphere
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(0.0, 4.0, 0.0))));
     draw(false, false, vec4(1.0, 1.0, 0.0, 1.0), spherePoints, sphereNormals);
