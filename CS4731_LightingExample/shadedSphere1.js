@@ -48,7 +48,7 @@ var normalsArray = [];
 
 var shadeType = {gourand: true, flat: false};
 
-var spotRad = 0.9;
+var spotRad = 0.1;
 var spotXPos = 0;
 var spotYPos = 0;
 
@@ -68,6 +68,21 @@ var imageZp = new Image();
 var imageXn = new Image();
 var imageYn = new Image();
 var imageZn = new Image();
+var textureRendered = false;
+
+var floorPoints = [
+    vec4( -50, -5,  -50, 1.0 ),
+    vec4( -50,  -5,  50, 1.0 ),
+    vec4( 50, -5,  -50, 1.0 ),
+    vec4( 50,  -5,  50, 1.0 )
+];
+
+var floorNormals = [
+    vec4(0.0, 1.0, 0.0, 0.0),
+    vec4(0.0, 1.0, 0.0, 0.0),
+    vec4(0.0, 1.0, 0.0, 0.0),
+    vec4(0.0, 1.0, 0.0, 0.0)
+];
 
 function configureCubeMap() {
     cubeMap = gl.createTexture();
@@ -89,6 +104,7 @@ function configureCubeMap() {
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 
     gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
+    isTextureWalls = false;
 
 }
 
@@ -96,7 +112,7 @@ function configureCubeMap() {
 function configureCubeMapImage(xp, yp, zp, xn, yn, zn) {
     cubeMap = gl.createTexture();
 
-    gl.activeTexture(gl.TEXTURE1);
+    gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap);
 
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -112,7 +128,7 @@ function configureCubeMapImage(xp, yp, zp, xn, yn, zn) {
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 
-    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 1);
+    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
 
 }
 
@@ -404,8 +420,39 @@ window.onload = function init() {
     imageXn.onload = function() {imagesLoaded++;};
     imageYn.onload = function() {imagesLoaded++;};
     imageZn.onload = function() {imagesLoaded++;};
+    console.log(floorPoints.length);
+    console.log(floorNormals.length);
     render();
 };
+
+function drawWallsAndFloor() {
+
+
+
+    var grey = vec4(0, 0, 1, 1.0);
+
+    var vBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(floorPoints), gl.STATIC_DRAW );
+
+    var vPosition = gl.getAttribLocation( program, "vPosition" );
+    gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vPosition );
+
+    var colorLoc = gl.getUniformLocation(program, "vColor");
+    gl.uniform4fv(colorLoc, flatten(grey));
+
+    var vBuffer2 = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer2);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(floorNormals), gl.STATIC_DRAW);
+
+    var vNormal = gl.getAttribLocation(program, "vNormal");
+    gl.vertexAttribPointer(vNormal, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vNormal);
+
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+}
+
 
 var id;
 
@@ -413,8 +460,9 @@ var id;
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    if (imagesLoaded === 6) {
+    if (!textureRendered && imagesLoaded === 6) {
         configureCubeMapImage(imageXp, imageYp, imageZp, imageXn, imageYn, imageZn);
+        textureRendered = true;
     }
     // depending on what shading we want, we choose an array of normals or the other.
     var normalsToUse = [];
@@ -497,6 +545,8 @@ function render() {
     modelMatrix = mult(modelMatrix, translate(3.0, -5.0, 0.0));
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix));
     draw(false, false, vec4(0.5, 0.5, 0.5, 1.0), spherePoints, sphereNormals);
+
+    drawWallsAndFloor();
 
     id = requestAnimationFrame(render);
 }
