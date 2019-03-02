@@ -26,8 +26,10 @@ var materialShininess = 20.0;
 
 var modelMatrix, viewMatrix, projectionMatrix;
 var modelMatrixLoc, viewMatrixLoc, projectionMatrixLoc;
-
-var eye = vec3(0, 0, 20);
+var xEye = 0;
+var yEye = 0;
+var zEye = 20;
+var eye = vec3(xEye, yEye, zEye);
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
@@ -48,7 +50,7 @@ var normalsArray = [];
 
 var shadeType = {gourand: true, flat: false};
 
-var spotRad = 0.1;
+var spotRad = 0.9;
 var spotXPos = 0;
 var spotYPos = 0;
 
@@ -85,7 +87,6 @@ var floorPoints = [
     vec4( -10,  -10,  10, 1.0 ),
     vec4( 0,  -10,  10, 1.0 ),
     vec4( 10, -10,  -10, 1.0 )
-
 ];*/
 
 var floorNormals = [
@@ -467,6 +468,7 @@ window.onload = function init() {
     spherePoints = pointsArray;
     sphereNormals = normalsArray;
 
+    var increm = 2;
 
     // we set functionality of the pressed keys
     window.onkeypress = function (event) {
@@ -488,16 +490,16 @@ window.onload = function init() {
                 shadeType.gourand = false;
                 shadeType.flat = true;
                 break;
-            case 'd':
+            case 'j':
                 spotXPos += 0.1;
                 break;
-            case 'a':
+            case 'l':
                 spotXPos -= 0.1;
                 break;
-            case 'w':
+            case 'i':
                 spotYPos += 0.1;
                 break;
-            case 's':
+            case 'k':
                 spotYPos -= 0.1;
                 break;
             case 'r':
@@ -510,45 +512,68 @@ window.onload = function init() {
                 isRefl = !isRefl;
                 console.log(isRefl);
                 break;
-            case 'v':
+            case 'd':
                 isRefr = !isRefr;
                 console.log(isRefr);
                 break;
+            case '1':
+                xEye += increm;
+                gl.uniformMatrix4fv(viewMatrix, false, flatten(lookAt(eye, at, up)));
+                break;
+            case '2':
+                xEye -= increm;
+                gl.uniformMatrix4fv(viewMatrix, false, flatten(lookAt(eye, at, up)));
+                break;
+            case '3':
+                yEye += increm;
+                gl.uniformMatrix4fv(viewMatrix, false, flatten(lookAt(eye, at, up)));
+                break;
+            case '4':
+                yEye -= increm;
+                gl.uniformMatrix4fv(viewMatrix, false, flatten(lookAt(eye, at, up)));
+                break;
+            case '5':
+                zEye += increm;
+                gl.uniformMatrix4fv(viewMatrix, false, flatten(lookAt(eye, at, up)));
+                break;
+            case '6':
+                zEye -= increm;
+                gl.uniformMatrix4fv(viewMatrix, false, flatten(lookAt(eye, at, up)));
+                break;
+
         }
     };
-    configureCubeMap();
+
 
 
 
     imageXp.crossOrigin = "";
-    imageXp.src = "https://web.cs.wpi.edu/~jmcuneo/a.jpg";
+    imageXp.src = "http://web.cs.wpi.edu/~jmcuneo/env_map_sides/nvposx.bmp";
 
     imageYp.crossOrigin = "";
-    imageYp.src = "https://web.cs.wpi.edu/~jmcuneo/a.jpg";
+    imageYp.src = "http://web.cs.wpi.edu/~jmcuneo/env_map_sides/nvposy.bmp";
 
     imageZp.crossOrigin = "";
-    imageZp.src = "https://web.cs.wpi.edu/~jmcuneo/a.jpg";
+    imageZp.src = "http://web.cs.wpi.edu/~jmcuneo/env_map_sides/nvposz.bmp";
 
     imageXn.crossOrigin = "";
-    imageXn.src = "https://web.cs.wpi.edu/~jmcuneo/a.jpg";
+    imageXn.src = "http://web.cs.wpi.edu/~jmcuneo/env_map_sides/nvnegx.bmp";
 
     imageYn.crossOrigin = "";
-    imageYn.src = "https://web.cs.wpi.edu/~jmcuneo/a.jpg";
+    imageYn.src = "http://web.cs.wpi.edu/~jmcuneo/env_map_sides/nvnegy.bmp";
 
     imageZn.crossOrigin = "";
-    imageZn.src = "https://web.cs.wpi.edu/~jmcuneo/a.jpg";
+    imageZn.src = "http://web.cs.wpi.edu/~jmcuneo/env_map_sides/nvnegz.bmp";
 
     imagesLoaded = 0;
-    imageXp.onload = function() {imagesLoaded++;};
-    imageYp.onload = function() {imagesLoaded++;};
-    imageZp.onload = function() {imagesLoaded++;};
-    imageXn.onload = function() {imagesLoaded++;};
-    imageYn.onload = function() {imagesLoaded++;};
-    imageZn.onload = function() {imagesLoaded++;};
-    console.log(floorPoints.length);
-    console.log(floorNormals.length);
-    //console.log(texCoordsArray.length);
+    imageXp.onload = function() {};
+    imageYp.onload = function() {};
+    imageZp.onload = function() {};
+    imageXn.onload = function() {};
+    imageYn.onload = function() {};
+    imageZn.onload = function() {configureCubeMapImage(imageXp, imageYp, imageZp, imageXn, imageYn, imageZn);};
 
+    configureCubeMap();
 
 
     var image = new Image();
@@ -613,10 +638,10 @@ function render() {
     console.log();
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    if (!textureRendered && imagesLoaded === 6) {
+    /*if (!textureRendered && imagesLoaded === 6) {
         configureCubeMapImage(imageXp, imageYp, imageZp, imageXn, imageYn, imageZn);
         textureRendered = true;
-    }
+    }*/
     // depending on what shading we want, we choose an array of normals or the other.
     var normalsToUse = [];
     if (shadeType.gourand) {
