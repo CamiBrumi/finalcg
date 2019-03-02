@@ -111,7 +111,9 @@ var texCoord = [
     vec2(maxT, minT)
 ];
 
-var texCoordsArray = texCoord;
+var texCoordsArrayCube = [];
+var texCoordsArraySphere = [];
+var texCoordsArrayHanger = [];
 
 function createATexture()
 {
@@ -248,6 +250,8 @@ function smallHanger() {
         vec4(3, -5, 0, 1.0)
     ];
     return hVerts;
+
+
 }
 
 // This function returns the points that make the bigger hanger
@@ -264,9 +268,9 @@ function bigHanger() {
 
     for (var i = 0; i < hVerts.length; i++) {
         hangerNormals.push(vec4(0, 1, 0, 0));
+        texCoordsArrayHanger.push(texCoord[0]);
     }
     return hVerts;
-
 }
 
 // creates the array with the points and normals of the cubes
@@ -294,12 +298,12 @@ function cube() {
 // auxiliar function of the cube() one, that adds the triangles in the desired order to create faces.
 function quad(a, b, c, d) //a, b, c , d are numbers (the position of the vertices that form a face in the vertices array)
 {
-    texCoordsArray.push(texCoord[0]);
-    texCoordsArray.push(texCoord[1]);
-    texCoordsArray.push(texCoord[2]);
-    texCoordsArray.push(texCoord[0]);
-    texCoordsArray.push(texCoord[2]);
-    texCoordsArray.push(texCoord[3]);
+    texCoordsArrayCube.push(texCoord[0]);
+    texCoordsArrayCube.push(texCoord[1]);
+    texCoordsArrayCube.push(texCoord[2]);
+    texCoordsArrayCube.push(texCoord[0]);
+    texCoordsArrayCube.push(texCoord[2]);
+    texCoordsArrayCube.push(texCoord[3]);
     var verts = [];
 
     var vertices = [
@@ -350,9 +354,9 @@ function triangle(a, b, c) {
     normalsArray.push(b[0], b[1], b[2], 0.0);
     normalsArray.push(c[0], c[1], c[2], 0.0);
 
-    texCoordsArray.push(texCoord[0]);
-    texCoordsArray.push(texCoord[1]);
-    texCoordsArray.push(texCoord[2]);
+    texCoordsArraySphere.push(texCoord[0]);
+    texCoordsArraySphere.push(texCoord[1]);
+    texCoordsArraySphere.push(texCoord[2]);
 
     index += 3;
 
@@ -543,6 +547,7 @@ window.onload = function init() {
     imageZn.onload = function() {imagesLoaded++;};
     console.log(floorPoints.length);
     console.log(floorNormals.length);
+    //console.log(texCoordsArray.length);
 
 
 
@@ -559,8 +564,6 @@ window.onload = function init() {
 };
 
 function drawWallsAndFloor() {
-
-
 
     var grey = vec4(0.9, 0.9, 0.9, 1.0);
 
@@ -586,7 +589,7 @@ function drawWallsAndFloor() {
 
     var tBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoordsArray), gl.STATIC_DRAW );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoord), gl.STATIC_DRAW );
 
     var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
     gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
@@ -606,6 +609,8 @@ var id;
 
 // this is what happens every frame of our animation
 function render() {
+
+    console.log();
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     if (!textureRendered && imagesLoaded === 6) {
@@ -626,6 +631,7 @@ function render() {
 
     stack = [];
     var wallTexturing = true;
+    gl.uniform1f(gl.getUniformLocation(program, "wallTexturing"), wallTexturing);
     var wantTexture = false;
     gl.uniform1f(gl.getUniformLocation(program, "wantTexture"), wantTexture);
 
@@ -647,6 +653,8 @@ function render() {
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(mult(modelMatrix, translate(0, 20, 0))));
     drawWallsAndFloor();
 
+    wallTexturing = false;
+    gl.uniform1f(gl.getUniformLocation(program, "wallTexturing"), wallTexturing);
     wantTexture = true;
     gl.uniform1f(gl.getUniformLocation(program, "wantTexture"), wantTexture);
     // top orange sphere
@@ -724,6 +732,9 @@ function render() {
 
 function draw(isCube, isHanger, color, points, normals) {
 
+    //console.log(points.length);
+    // console.log(normals.length);
+    // console.log(texCoord.length);
 
     var vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
@@ -751,6 +762,21 @@ function draw(isCube, isHanger, color, points, normals) {
     gl.uniform1f(gl.getUniformLocation(program, "isRefr"), isRefr);
 
 
+    var texCoordToUse = [];
+    if (isCube) {
+        texCoordToUse = texCoordsArrayCube;
+    } else if (isHanger) {
+        texCoordToUse = texCoordsArrayHanger;
+    } else { // sphere
+        texCoordToUse = texCoordsArraySphere;
+    }
+    var tBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoordToUse), gl.STATIC_DRAW );
+
+    var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
+    gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vTexCoord );
 
 
     if (isCube) {
