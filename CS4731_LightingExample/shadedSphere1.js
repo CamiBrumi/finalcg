@@ -14,7 +14,10 @@ var vb = vec4(0.0, 0.942809, 0.333333, 1);
 var vc = vec4(-0.816497, -0.471405, 0.333333, 1);
 var vd = vec4(0.816497, -0.471405, 0.333333, 1);
 
-var lightPosition = vec4(1.0, 1.0, 1.0, 0.0);
+var lightx = 1.0;
+var lighty = 1.0;
+var lightz = 1.0;
+var lightPosition = vec4(lightx, lighty, lightz, 0.0);
 var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0);
 var lightDiffuse = vec4(1.0, 1.0, 1.0, 1.0);
 var lightSpecular = vec4(1.0, 1.0, 1.0, 1.0);
@@ -468,7 +471,7 @@ window.onload = function init() {
     spherePoints = pointsArray;
     sphereNormals = normalsArray;
 
-    var increm = 2;
+    var increm = 100;
 
     // we set functionality of the pressed keys
     window.onkeypress = function (event) {
@@ -540,7 +543,46 @@ window.onload = function init() {
                 zEye -= increm;
                 gl.uniformMatrix4fv(viewMatrix, false, flatten(lookAt(eye, at, up)));
                 break;
-
+            case 's':
+                materialShininess += increm;
+                gl.uniform1f(gl.getUniformLocation(program,
+                    "shininess"), materialShininess);
+                break;
+            case 'w':
+                materialShininess -= increm;
+                gl.uniform1f(gl.getUniformLocation(program,
+                    "shininess"), materialShininess);
+                break;
+            case 'f':
+                lightx += increm;
+                gl.uniform4fv(gl.getUniformLocation(program,
+                    "lightPosition"), flatten(lightPosition));
+                break;
+            case 'v':
+                lightx -= increm;
+                gl.uniform4fv(gl.getUniformLocation(program,
+                    "lightPosition"), flatten(lightPosition));
+                break;
+            case 'g':
+                lighty += increm;
+                gl.uniform4fv(gl.getUniformLocation(program,
+                    "lightPosition"), flatten(lightPosition));
+                break;
+            case 'b':
+                lighty -= increm;
+                gl.uniform4fv(gl.getUniformLocation(program,
+                    "lightPosition"), flatten(lightPosition));
+                break;
+            case 'h':
+                lightz += increm;
+                gl.uniform4fv(gl.getUniformLocation(program,
+                    "lightPosition"), flatten(lightPosition));
+                break;
+            case 'n':
+                lightz -= increm;
+                gl.uniform4fv(gl.getUniformLocation(program,
+                    "lightPosition"), flatten(lightPosition));
+                break;
         }
     };
 
@@ -749,7 +791,6 @@ function render() {
     gl.uniformMatrix4fv(modelMatrixLoc, false, flatten(modelMatrix));
     draw(false, false, vec4(0.5, 0.5, 0.5, 1.0), spherePoints, sphereNormals);
 
-    //drawWallsAndFloor();
 
     id = requestAnimationFrame(render);
 }

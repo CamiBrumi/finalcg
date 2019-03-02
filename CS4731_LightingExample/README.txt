@@ -13,6 +13,13 @@ The code is structured in the following way:
 - The methods smallHanger, bigHanger, cube, quad, newellMethod, triangle, divideTriangle and tetrahedron are used to create the hangers, cubes and the spheres.
 
 
+extra background with colors and shading. try changing the spotlight
+
+tried to move the eye and also the light position but didn't work (see switch in the window.onload() method)
+
+change the shininess w+ (really nice effect), s-
+
+
 // ** EXTRA CREDIT 1 **
 // I added the feature to be able to move the spotlight along the x and y axis.
 // The keys are the following:
